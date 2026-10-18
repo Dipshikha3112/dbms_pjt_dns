@@ -1,0 +1,18 @@
+data_type,storage,purpose
+Patient,PostgreSQL,Transactional
+Provider,PostgreSQL,Transactional
+Organization,PostgreSQL,Transactional
+Encounter,PostgreSQL,Transactional
+Diagnosis,PostgreSQL,Transactional
+Medication,PostgreSQL,Transactional
+Observation,PostgreSQL,Transactional
+Lab Result,PostgreSQL,Transactional
+Procedure,PostgreSQL,Transactional
+Claim,PostgreSQL,Transactional
+Payer,PostgreSQL,Transactional
+LOINC concepts,PostgreSQL + Neo4j,Terminology
+RxNorm concepts,PostgreSQL + Neo4j,Terminology
+MeSH concepts,Neo4j,Knowledge graph
+Biomedical relationships,Neo4j,Knowledge graph
+Research paper chunks,pgvector,Semantic retrieval
+Drug label chunks,pgvector,Semantic retrieval

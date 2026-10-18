@@ -1,0 +1,85 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*credentials*.json
+*secrets*.json
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Large datasets and generated results
+data/
+datasets/
+results/
+outputs/
+logs/
+checkpoints/
+*.zip
+*.7z
+*.tar
+*.gz
+
+# Model checkpoints
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.pkl
+*.joblib
+
+# IDE and operating system
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log
+
+# Generated synthetic patient datasets
+phase5_scaling/
+**/generated/
+**/fhir/
+**/csv/
+**/output/
+**/outputs/
+
+# Generated model artifacts
+**/checkpoints/
+**/runs/
+*.safetensors
+*.parquet
+*.npy
+*.npz
+
+# Database backups
+*.dump
+*.backup
+*.sql.gz
+
+# Large research archives
+*.pdf
+
+# Large database backups
+phase9_hypopg_docker/backups/healthcare_data.sql
+
+# Synthea executable
+tools/synthea/*.jar
+
+# Backup files
+*.py.backup_*

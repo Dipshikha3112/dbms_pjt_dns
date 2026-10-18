@@ -1,0 +1,33 @@
+table_name,module,purpose
+patient,Patient,Core patient demographic record
+patient_address,Patient,Patient address
+patient_contact,Patient,Patient contact information
+patient_allergy,Patient,Patient allergies
+patient_immunization,Patient,Patient immunizations
+organization,Provider,Healthcare organization
+provider,Provider,Healthcare provider
+provider_specialty,Provider,Provider specialty
+encounter,Encounter,Clinical encounter
+encounter_type,Encounter,Encounter classification
+admission,Encounter,Admission details
+discharge,Encounter,Discharge details
+condition,Clinical,Condition terminology
+diagnosis,Clinical,Patient diagnosis
+procedure_definition,Clinical,Procedure terminology
+patient_procedure,Clinical,Performed procedures
+care_plan,Clinical,Patient care plan
+medical_device,Clinical,Patient medical device
+imaging_study,Clinical,Imaging metadata
+drug_concept,Medication,RxNorm drug concept
+prescription,Medication,Prescription
+prescription_item,Medication,Prescription drug item
+drug_relationship,Medication,RxNorm drug relationship
+loinc_concept,Laboratory,LOINC terminology
+observation,Laboratory,Clinical observation
+lab_result,Laboratory,Laboratory result
+payer,Financial,Insurance payer
+patient_insurance,Financial,Patient payer coverage
+claim,Financial,Healthcare claim
+claim_transaction,Financial,Claim transaction
+query_log,Optimization,Database workload log
+optimization_recommendation,Optimization,AI optimization recommendation

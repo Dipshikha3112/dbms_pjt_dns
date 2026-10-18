@@ -1,0 +1,250 @@
+source_file,column,pandas_dtype,nullable,null_count,unique_values,sample_value
+allergies.csv,START,str,False,0,179,2020-02-17
+allergies.csv,STOP,float64,True,794,0,
+allergies.csv,PATIENT,str,False,0,179,b9c610cd-28a6-4636-ccb6-c7a0d2a4cb85
+allergies.csv,ENCOUNTER,str,False,0,179,01efcc52-15d6-51e9-faa2-bee069fcbe44
+allergies.csv,CODE,int64,False,0,21,111088007
+allergies.csv,SYSTEM,str,False,0,1,Unknown
+allergies.csv,DESCRIPTION,str,False,0,21,Latex (substance)
+allergies.csv,TYPE,str,False,0,2,allergy
+allergies.csv,CATEGORY,str,False,0,3,environment
+allergies.csv,REACTION1,float64,True,384,17,247472004.0
+allergies.csv,DESCRIPTION1,str,True,384,18,Wheal (finding)
+allergies.csv,SEVERITY1,str,True,384,3,MILD
+allergies.csv,REACTION2,float64,True,535,13,271807003.0
+allergies.csv,DESCRIPTION2,str,True,535,14,Eruption of skin (disorder)
+allergies.csv,SEVERITY2,str,True,535,2,MILD
+careplans.csv,Id,str,False,0,3931,6d10e8ad-cdf8-db60-ff71-688eae2861c2
+careplans.csv,START,str,False,0,3069,2020-02-05
+careplans.csv,STOP,str,True,1679,1758,2014-07-07
+careplans.csv,PATIENT,str,False,0,1068,b9c610cd-28a6-4636-ccb6-c7a0d2a4cb85
+careplans.csv,ENCOUNTER,str,False,0,3849,fb15e123-fea7-cae8-6d49-ee9d2a85fc84
+careplans.csv,CODE,int64,False,0,37,384758001
+careplans.csv,DESCRIPTION,str,False,0,37,Self-care interventions (procedure)
+careplans.csv,REASONCODE,float64,True,558,67,10509002.0
+careplans.csv,REASONDESCRIPTION,str,True,558,67,Acute bronchitis (disorder)
+claims.csv,Id,str,False,0,117889,e413105d-6f23-34ef-724a-b42adab9df22
+claims.csv,PATIENTID,str,False,0,1163,b9c610cd-28a6-4636-ccb6-c7a0d2a4cb85
+claims.csv,PROVIDERID,str,False,0,1123,82608ebb-037c-3cef-9d34-3736d69b29e8
+claims.csv,PRIMARYPATIENTINSURANCEID,str,False,0,11,7c4411ce-02f1-39b5-b9ec-dfbea9ad3c1a
+claims.csv,SECONDARYPATIENTINSURANCEID,str,False,0,8,0
+claims.csv,DEPARTMENTID,int64,False,0,7,10
+claims.csv,PATIENTDEPARTMENTID,int64,False,0,7,10
+claims.csv,DIAGNOSIS1,int64,False,0,176,410620009
+claims.csv,DIAGNOSIS2,float64,True,89378,127,10509002.0
+claims.csv,DIAGNOSIS3,float64,True,111855,64,5251000175109.0
+claims.csv,DIAGNOSIS4,float64,True,116212,46,160903007.0
+claims.csv,DIAGNOSIS5,float64,True,117411,44,424393004.0
+claims.csv,DIAGNOSIS6,float64,True,117757,24,386661006.0
+claims.csv,DIAGNOSIS7,float64,True,117822,16,36955009.0
+claims.csv,DIAGNOSIS8,float64,True,117859,9,840544004.0
+claims.csv,REFERRINGPROVIDERID,float64,True,117889,0,
+claims.csv,APPOINTMENTID,str,False,0,61459,748f8357-6cc7-551d-f31a-32fa2cf84126
+claims.csv,CURRENTILLNESSDATE,str,False,0,52914,2019-02-17T05:07:38Z
+claims.csv,SERVICEDATE,str,False,0,58419,2019-02-17T05:07:38Z
+claims.csv,SUPERVISINGPROVIDERID,str,False,0,1123,82608ebb-037c-3cef-9d34-3736d69b29e8
+claims.csv,STATUS1,str,False,0,2,CLOSED
+claims.csv,STATUS2,str,True,103727,2,CLOSED
+claims.csv,STATUSP,str,False,0,2,CLOSED
+claims.csv,OUTSTANDING1,float64,False,0,1,0.0
+claims.csv,OUTSTANDING2,float64,True,103727,1,0.0
+claims.csv,OUTSTANDINGP,float64,False,0,1,0.0
+claims.csv,LASTBILLEDDATE1,str,False,0,58817,2019-02-17T05:22:38Z
+claims.csv,LASTBILLEDDATE2,str,True,103727,5692,2021-01-19T23:56:22Z
+claims.csv,LASTBILLEDDATEP,str,False,0,58817,2019-02-17T05:22:38Z
+claims.csv,HEALTHCARECLAIMTYPEID1,int64,False,0,2,1
+claims.csv,HEALTHCARECLAIMTYPEID2,int64,False,0,3,0
+claims_transactions.csv,ID,str,False,0,711238,5c58de0b-3ba9-401d-2ce7-a4785ff35c15
+claims_transactions.csv,CLAIMID,str,False,0,117889,e413105d-6f23-34ef-724a-b42adab9df22
+claims_transactions.csv,CHARGEID,int64,False,0,711238,0
+claims_transactions.csv,PATIENTID,str,False,0,1163,b9c610cd-28a6-4636-ccb6-c7a0d2a4cb85
+claims_transactions.csv,TYPE,str,False,0,4,CHARGE
+claims_transactions.csv,AMOUNT,float64,True,372426,54447,129.16
+claims_transactions.csv,METHOD,str,True,458903,5,ECHECK
+claims_transactions.csv,FROMDATE,str,False,0,100265,2019-02-17T05:07:38Z
+claims_transactions.csv,TODATE,str,False,0,134363,2019-02-17T05:22:38Z
+claims_transactions.csv,PLACEOFSERVICE,str,False,0,1122,f7ae497d-8dc6-3721-9402-43b621a4e7d2
+claims_transactions.csv,PROCEDURECODE,int64,False,0,410,410620009
+claims_transactions.csv,MODIFIER1,float64,True,711238,0,
+claims_transactions.csv,MODIFIER2,float64,True,711238,0,
+claims_transactions.csv,DIAGNOSISREF1,int64,False,0,1,1
+claims_transactions.csv,DIAGNOSISREF2,float64,True,516000,1,2.0
+claims_transactions.csv,DIAGNOSISREF3,float64,True,667976,1,3.0
+claims_transactions.csv,DIAGNOSISREF4,float64,True,698843,1,4.0
+claims_transactions.csv,UNITS,int64,False,0,1,1
+claims_transactions.csv,DEPARTMENTID,int64,False,0,7,10
+claims_transactions.csv,NOTES,str,False,0,434,Well child visit (procedure)
+claims_transactions.csv,UNITAMOUNT,float64,True,492517,46712,129.16
+claims_transactions.csv,TRANSFEROUTID,float64,True,591147,120091,2.0
+claims_transactions.csv,TRANSFERTYPE,str,True,372426,3,1
+claims_transactions.csv,PAYMENTS,float64,True,458903,53004,122.7
+claims_transactions.csv,ADJUSTMENTS,float64,True,711238,0,
+claims_transactions.csv,TRANSFERS,float64,True,471056,27186,6.46
+claims_transactions.csv,OUTSTANDING,float64,True,218721,30895,6.46
+claims_transactions.csv,APPOINTMENTID,str,False,0,61459,748f8357-6cc7-551d-f31a-32fa2cf84126
+claims_transactions.csv,LINENOTE,float64,True,711238,0,
+claims_transactions.csv,PATIENTINSURANCEID,str,True,89738,1150,b9c610cd-28a6-4636-ccb6-c7a0d2a4cb85
+claims_transactions.csv,FEESCHEDULEID,int64,False,0,1,1
+claims_transactions.csv,PROVIDERID,str,False,0,1123,82608ebb-037c-3cef-9d34-3736d69b29e8
+claims_transactions.csv,SUPERVISINGPROVIDERID,str,False,0,1123,82608ebb-037c-3cef-9d34-3736d69b29e8
+conditions.csv,START,str,False,0,12995,2013-06-24
+conditions.csv,STOP,str,True,8169,11508,2013-07-02
+conditions.csv,PATIENT,str,False,0,1147,c1f1fcaa-82fd-d5b7-3544-c8f9708b06a8
+conditions.csv,ENCOUNTER,str,False,0,26904,0b2794bd-ec2b-d34f-0610-2523b3b7fcf0
+conditions.csv,CODE,int64,False,0,202,10509002
+conditions.csv,DESCRIPTION,str,False,0,204,Acute bronchitis (disorder)
+devices.csv,START,str,False,0,87,2017-09-25T17:26:19Z
+devices.csv,STOP,str,True,75,14,2021-01-20T05:41:03Z
+devices.csv,PATIENT,str,False,0,76,d1822991-eb4f-aafe-6a88-cd5279b4385b
+devices.csv,ENCOUNTER,str,False,0,77,bd2f33cd-4a24-6e32-1cd2-bf075ba9ed77
+devices.csv,CODE,int64,False,0,6,72506001
+devices.csv,DESCRIPTION,str,False,0,6,Implantable defibrillator  device (physical object)
+devices.csv,UDI,str,False,0,89,(01)32224845419831(11)170904(17)420919(10)707911340(21)5755382
+encounters.csv,Id,str,False,0,61459,748f8357-6cc7-551d-f31a-32fa2cf84126
+encounters.csv,START,str,False,0,58419,2019-02-17T05:07:38Z
+encounters.csv,STOP,str,False,0,58805,2019-02-17T05:22:38Z
+encounters.csv,PATIENT,str,False,0,1163,b9c610cd-28a6-4636-ccb6-c7a0d2a4cb85
+encounters.csv,ORGANIZATION,str,False,0,1122,f7ae497d-8dc6-3721-9402-43b621a4e7d2
+encounters.csv,PROVIDER,str,False,0,1123,82608ebb-037c-3cef-9d34-3736d69b29e8
+encounters.csv,PAYER,str,False,0,10,7c4411ce-02f1-39b5-b9ec-dfbea9ad3c1a
+encounters.csv,ENCOUNTERCLASS,str,False,0,6,wellness
+encounters.csv,CODE,int64,False,0,50,410620009
+encounters.csv,DESCRIPTION,str,False,0,59,Well child visit (procedure)
+encounters.csv,BASE_ENCOUNTER_COST,float64,False,0,2,129.16
+encounters.csv,TOTAL_CLAIM_COST,float64,False,0,25582,877.79
+encounters.csv,PAYER_COVERAGE,float64,False,0,7580,833.9
+encounters.csv,REASONCODE,float64,True,45502,104,10509002.0
+encounters.csv,REASONDESCRIPTION,str,True,45502,104,Acute bronchitis (disorder)
+imaging_studies.csv,Id,str,False,0,920,d94924cd-75ca-e71f-21f6-ec92f074baf8
+imaging_studies.csv,DATE,str,False,0,920,2017-02-22T08:52:29Z
+imaging_studies.csv,PATIENT,str,False,0,238,c1f1fcaa-82fd-d5b7-3544-c8f9708b06a8
+imaging_studies.csv,ENCOUNTER,str,False,0,920,6474f606-5a1b-48c0-bbbf-ad6dcbc24d4e
+imaging_studies.csv,SERIES_UID,str,False,0,920,1.2.840.99999999.1.55919593.1487753549732
+imaging_studies.csv,BODYSITE_CODE,int64,False,0,9,344001
+imaging_studies.csv,BODYSITE_DESCRIPTION,str,False,0,10,Ankle
+imaging_studies.csv,MODALITY_CODE,str,False,0,4,DX
+imaging_studies.csv,MODALITY_DESCRIPTION,str,False,0,4,Digital Radiography
+imaging_studies.csv,INSTANCE_UID,str,False,0,151414,1.2.840.99999999.1.1.39611853.1487753549732
+imaging_studies.csv,SOP_CODE,str,False,0,4,1.2.840.10008.5.1.4.1.1.1.1
+imaging_studies.csv,SOP_DESCRIPTION,str,False,0,5,Digital X-Ray Image Storage
+imaging_studies.csv,PROCEDURE_CODE,int64,False,0,10,19490002
+immunizations.csv,DATE,str,False,0,11618,2019-02-17T05:07:38Z
+immunizations.csv,PATIENT,str,False,0,1158,b9c610cd-28a6-4636-ccb6-c7a0d2a4cb85
+immunizations.csv,ENCOUNTER,str,False,0,11796,748f8357-6cc7-551d-f31a-32fa2cf84126
+immunizations.csv,CODE,int64,False,0,21,8
+immunizations.csv,DESCRIPTION,str,False,0,21,Hep B  adolescent or pediatric
+immunizations.csv,BASE_COST,float64,False,0,1,140.52
+medications.csv,START,str,False,0,25749,2020-02-17T10:40:32Z
+medications.csv,STOP,str,True,2713,23895,2013-07-02T06:39:19Z
+medications.csv,PATIENT,str,False,0,1117,b9c610cd-28a6-4636-ccb6-c7a0d2a4cb85
+medications.csv,PAYER,str,False,0,10,7c4411ce-02f1-39b5-b9ec-dfbea9ad3c1a
+medications.csv,ENCOUNTER,str,False,0,26871,01efcc52-15d6-51e9-faa2-bee069fcbe44
+medications.csv,CODE,int64,False,0,170,1014676
+medications.csv,DESCRIPTION,str,False,0,176,cetirizine hydrochloride 5 MG Oral Tablet
+medications.csv,BASE_COST,float64,False,0,19184,21.45
+medications.csv,PAYER_COVERAGE,float64,False,0,5911,0.0
+medications.csv,DISPENSES,int64,False,0,430,21
+medications.csv,TOTALCOST,float64,False,0,22852,450.45
+medications.csv,REASONCODE,float64,True,15471,45,10509002.0
+medications.csv,REASONDESCRIPTION,str,True,15471,45,Acute bronchitis (disorder)
+observations.csv,DATE,str,False,0,63811,2019-02-17T05:07:38Z
+observations.csv,PATIENT,str,False,0,1163,b9c610cd-28a6-4636-ccb6-c7a0d2a4cb85
+observations.csv,ENCOUNTER,str,True,31662,21025,748f8357-6cc7-551d-f31a-32fa2cf84126
+observations.csv,CATEGORY,str,True,31662,8,vital-signs
+observations.csv,CODE,str,False,0,234,8302-2
+observations.csv,DESCRIPTION,str,False,0,247,Body Height
+observations.csv,VALUE,str,False,0,6804,51.4
+observations.csv,UNITS,str,True,185017,43,cm
+observations.csv,TYPE,str,False,0,2,numeric
+organizations.csv,Id,str,False,0,1127,ef58ea08-d883-3957-8300-150554edc8fb
+organizations.csv,NAME,str,False,0,984,HEALTHALLIANCE HOSPITALS  INC
+organizations.csv,ADDRESS,str,False,0,1016,60 HOSPITAL ROAD
+organizations.csv,CITY,str,False,0,319,LEOMINSTER
+organizations.csv,STATE,str,False,0,1,MA
+organizations.csv,ZIP,str,False,0,1009,01453
+organizations.csv,LAT,float64,False,0,352,42.520838
+organizations.csv,LON,float64,False,0,355,-71.770876
+organizations.csv,PHONE,str,True,153,947,9784662000
+organizations.csv,REVENUE,float64,False,0,1,0.0
+organizations.csv,UTILIZATION,int64,False,0,223,1214
+patients.csv,Id,str,False,0,1163,b9c610cd-28a6-4636-ccb6-c7a0d2a4cb85
+patients.csv,BIRTHDATE,str,False,0,987,2019-02-17
+patients.csv,DEATHDATE,str,True,1000,163,2009-11-13
+patients.csv,SSN,str,False,0,1163,999-65-3251
+patients.csv,DRIVERS,str,True,215,941,S99941126
+patients.csv,PASSPORT,str,True,276,887,X75063318X
+patients.csv,PREFIX,str,True,245,3,Mr.
+patients.csv,FIRST,str,False,0,1002,Damon455
+patients.csv,LAST,str,False,0,477,Langosh790
+patients.csv,SUFFIX,str,True,1147,3,MD
+patients.csv,MAIDEN,str,True,832,248,Morar593
+patients.csv,MARITAL,str,True,384,2,M
+patients.csv,RACE,str,False,0,6,white
+patients.csv,ETHNICITY,str,False,0,2,nonhispanic
+patients.csv,GENDER,str,False,0,2,M
+patients.csv,BIRTHPLACE,str,False,0,317,Middleborough  Massachusetts  US
+patients.csv,ADDRESS,str,False,0,1163,620 Lynch Tunnel Apt 0
+patients.csv,CITY,str,False,0,256,Springfield
+patients.csv,STATE,str,False,0,1,Massachusetts
+patients.csv,COUNTY,str,False,0,13,Hampden County
+patients.csv,ZIP,float64,True,545,223,1104.0
+patients.csv,LAT,float64,False,0,1163,42.08038942501558
+patients.csv,LON,float64,False,0,1163,-72.48043144917739
+patients.csv,HEALTHCARE_EXPENSES,float64,False,0,1163,9039.1645
+patients.csv,HEALTHCARE_COVERAGE,float64,False,0,1036,7964.1255
+payer_transitions.csv,PATIENT,str,False,0,1163,b9c610cd-28a6-4636-ccb6-c7a0d2a4cb85
+payer_transitions.csv,MEMBERID,str,True,9546,32119,bca22051-b39b-7591-74d4-47e10a94c52e
+payer_transitions.csv,START_YEAR,str,False,0,47005,2019-02-24T05:07:38Z
+payer_transitions.csv,END_YEAR,str,False,0,47162,2020-03-01T05:07:38Z
+payer_transitions.csv,PAYER,str,False,0,10,7c4411ce-02f1-39b5-b9ec-dfbea9ad3c1a
+payer_transitions.csv,SECONDARY_PAYER,str,True,51121,6,6e2f1a2d-27bd-3701-8d08-dae202c58632
+payer_transitions.csv,OWNERSHIP,str,True,9546,3,Self
+payer_transitions.csv,OWNERNAME,str,True,9546,3619,Damon455 Langosh790
+payers.csv,Id,str,False,0,10,b3221cfc-24fb-339e-823d-bc4136cbc4ed
+payers.csv,NAME,str,False,0,10,Dual Eligible
+payers.csv,ADDRESS,str,True,1,7,7500 Security Blvd
+payers.csv,CITY,str,True,1,7,Baltimore
+payers.csv,STATE_HEADQUARTERED,str,True,1,6,MD
+payers.csv,ZIP,float64,True,1,7,21244.0
+payers.csv,PHONE,str,True,1,8,1-877-267-2323
+payers.csv,AMOUNT_COVERED,float64,False,0,10,2786029.66
+payers.csv,AMOUNT_UNCOVERED,float64,False,0,10,358233.14
+payers.csv,REVENUE,float64,False,0,10,1439000.0
+payers.csv,COVERED_ENCOUNTERS,int64,False,0,10,1121
+payers.csv,UNCOVERED_ENCOUNTERS,int64,False,0,7,0
+payers.csv,COVERED_MEDICATIONS,int64,False,0,5,1141
+payers.csv,UNCOVERED_MEDICATIONS,int64,False,0,7,0
+payers.csv,COVERED_PROCEDURES,int64,False,0,5,551
+payers.csv,UNCOVERED_PROCEDURES,int64,False,0,7,0
+payers.csv,COVERED_IMMUNIZATIONS,int64,False,0,5,280
+payers.csv,UNCOVERED_IMMUNIZATIONS,int64,False,0,7,0
+payers.csv,UNIQUE_CUSTOMERS,int64,False,0,10,20
+payers.csv,QOLS_AVG,float64,False,0,10,0.5370553777293092
+payers.csv,MEMBER_MONTHS,int64,False,0,10,3060
+procedures.csv,START,str,False,0,64956,2019-02-17T05:07:38Z
+procedures.csv,STOP,str,False,0,70885,2019-02-17T05:22:38Z
+procedures.csv,PATIENT,str,False,0,1162,b9c610cd-28a6-4636-ccb6-c7a0d2a4cb85
+procedures.csv,ENCOUNTER,str,False,0,25854,748f8357-6cc7-551d-f31a-32fa2cf84126
+procedures.csv,CODE,int64,False,0,170,430193006
+procedures.csv,DESCRIPTION,str,False,0,178,Medication Reconciliation (procedure)
+procedures.csv,BASE_COST,float64,False,0,31029,608.11
+procedures.csv,REASONCODE,float64,True,63226,48,10509002.0
+procedures.csv,REASONDESCRIPTION,str,True,63226,48,Acute bronchitis (disorder)
+providers.csv,Id,str,False,0,5056,c23e8780-6030-37ec-8d02-8c6e3def10ac
+providers.csv,ORGANIZATION,str,False,0,1127,ef58ea08-d883-3957-8300-150554edc8fb
+providers.csv,NAME,str,False,0,3735,Reginald96 Bruen238
+providers.csv,GENDER,str,False,0,2,M
+providers.csv,SPECIALITY,str,False,0,63,GENERAL PRACTICE
+providers.csv,ADDRESS,str,False,0,1016,60 HOSPITAL ROAD
+providers.csv,CITY,str,False,0,319,LEOMINSTER
+providers.csv,STATE,str,False,0,1,MA
+providers.csv,ZIP,str,False,0,1009,01453
+providers.csv,LAT,float64,False,0,352,42.520838
+providers.csv,LON,float64,False,0,355,-71.770876
+providers.csv,UTILIZATION,int64,False,0,224,1214
+supplies.csv,DATE,str,False,0,158,2021-02-08
+supplies.csv,PATIENT,str,False,0,20,8fa5a097-1970-9370-4193-a7baa3d235b5
+supplies.csv,ENCOUNTER,str,False,0,25,b6358095-06f1-cc6a-ac12-3d46550a254a
+supplies.csv,CODE,int64,False,0,20,409534002
+supplies.csv,DESCRIPTION,str,False,0,20,Disposable air-purifying respirator (physical object)
+supplies.csv,QUANTITY,int64,False,0,9,2

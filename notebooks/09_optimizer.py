@@ -1,0 +1,2423 @@
+
+import os
+import re
+import sys
+import csv
+import json
+import math
+import time
+import uuid
+import hashlib
+import argparse
+import logging
+import platform
+import statistics
+import subprocess
+from pathlib import Path
+from datetime import datetime, timezone
+from collections import Counter, defaultdict
+from dataclasses import dataclass, asdict
+
+import numpy as np
+import pandas as pd
+import psycopg
+from psycopg import sql
+import joblib
+import sqlparse
+from scipy.stats import ks_2samp
+
+try:
+    from sklearn.metrics import (
+        accuracy_score, balanced_accuracy_score,
+        precision_score, recall_score, f1_score,
+        mean_absolute_error, mean_squared_error
+    )
+except ImportError:
+    raise RuntimeError("Install scikit-learn before running this script.")
+
+
+PROTECTED_DATABASES = {
+    "adaptive_healthcare_db",
+    "adaptive_healthcare_scale_10k",
+    "adaptive_healthcare_scale_50k"
+}
+
+ALLOWED_BENCHMARK_PREFIX = "adaptive_healthcare_phase9_"
+
+SUPPORTED_INDEX_TYPES = {
+    "btree", "brin", "gin"
+}
+
+SAFE_SQL_START = re.compile(
+    r"^\s*(SELECT|WITH)\b",
+    re.IGNORECASE
+)
+
+UNSAFE_SQL = re.compile(
+    r"\b("
+    r"INSERT|UPDATE|DELETE|MERGE|DROP|ALTER|CREATE|TRUNCATE|"
+    r"GRANT|REVOKE|COPY|CALL|DO|VACUUM|ANALYZE|REFRESH|"
+    r"EXECUTE|PREPARE|LOCK|SET|RESET|DISCARD|"
+    r"PG_SLEEP|DBLINK|LO_IMPORT|LO_EXPORT|"
+    r"NEXTVAL|SETVAL|PG_ADVISORY"
+    r")\b",
+    re.IGNORECASE
+)
+
+DANGEROUS_SELECT = re.compile(
+    r"\b(INTO|FOR\s+UPDATE|FOR\s+SHARE|FOR\s+NO\s+KEY\s+UPDATE)\b",
+    re.IGNORECASE
+)
+
+
+def utcnow():
+    return datetime.now(timezone.utc).isoformat()
+
+
+def digest(value):
+    return hashlib.sha256(str(value).encode("utf-8")).hexdigest()
+
+
+def json_safe(value):
+    if isinstance(value, (np.integer,)):
+        return int(value)
+    if isinstance(value, (np.floating,)):
+        return float(value)
+    if isinstance(value, (np.ndarray,)):
+        return value.tolist()
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, set):
+        return sorted(value)
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, (np.bool_,)):
+        return bool(value)
+    return str(value)
+
+
+def save_json(path, obj):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as f:
+        json.dump(
+            obj, f, indent=2,
+            default=json_safe, allow_nan=False
+        )
+
+
+def save_csv(path, rows):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(rows).to_csv(path, index=False)
+
+
+def finite(value, default=0.0):
+    try:
+        x = float(value)
+        return x if math.isfinite(x) else default
+    except (ValueError, TypeError):
+        return default
+
+
+def median(values):
+    vals = [finite(x) for x in values if x is not None]
+    return float(np.median(vals)) if vals else None
+
+
+def percentile(values, p):
+    vals = [finite(x) for x in values if x is not None]
+    return float(np.percentile(vals, p)) if vals else None
+
+
+def normalize_sql(query):
+    query = sqlparse.format(
+        query, strip_comments=True,
+        keyword_case="upper",
+        strip_whitespace=True
+    )
+    query = re.sub(r"'(?:''|[^'])*'", "?", query)
+    query = re.sub(r"\b\d+(?:\.\d+)?\b", "?", query)
+    return re.sub(r"\s+", " ", query).strip()
+
+
+def fingerprint(query):
+    return digest(normalize_sql(query))[:20]
+
+
+def validate_readonly_query(query):
+    if not isinstance(query, str):
+        return False, "not_string"
+
+    query = query.strip()
+
+    if not SAFE_SQL_START.match(query):
+        return False, "not_select"
+
+    statements = sqlparse.parse(query)
+
+    if len(statements) != 1:
+        return False, "multiple_statements"
+
+    if statements[0].get_type() != "SELECT":
+        return False, "not_plain_select"
+
+    if UNSAFE_SQL.search(query):
+        return False, "unsafe_keyword"
+
+    if DANGEROUS_SELECT.search(query):
+        return False, "locking_or_select_into"
+
+    if ";" in query.rstrip(";"):
+        return False, "embedded_semicolon"
+
+    return True, "ok"
+
+
+@dataclass
+class Candidate:
+    candidate_id: str
+    table_schema: str
+    table_name: str
+    columns: list
+    index_type: str
+    predicate: str = ""
+    source: str = "heuristic"
+    frequency: int = 0
+    estimated_gain_pct: float = 0.0
+    estimated_cost_before: float = 0.0
+    estimated_cost_after: float = 0.0
+    estimated_size_mb: float = 0.0
+    write_penalty: float = 0.0
+    risk: float = 0.0
+    score: float = 0.0
+    approved: bool = False
+    reason: str = ""
+
+
+class Audit:
+    def __init__(self, directory):
+        self.path = Path(directory) / "audit.jsonl"
+
+    def write(self, event, **kwargs):
+        record = {
+            "timestamp": utcnow(),
+            "event": event,
+            **kwargs
+        }
+        with self.path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(record, default=json_safe) + "\n")
+
+
+class Database:
+    def __init__(self, args, database=None):
+        self.args = args
+        self.name = database or args.database
+        self.conn = None
+
+    def __enter__(self):
+        self.conn = psycopg.connect(
+            host=self.args.host,
+            port=self.args.port,
+            dbname=self.name,
+            user=self.args.user,
+            password=self.args.password,
+            connect_timeout=10,
+            autocommit=True
+        )
+        self.conn.execute(
+    "SELECT set_config('statement_timeout', %s, false)",
+    (str(self.args.timeout_ms),))
+        self.conn.execute(
+    "SELECT set_config('lock_timeout', %s, false)",
+    ("3s",)
+)
+        return self
+
+    def __exit__(self, *exc):
+        if self.conn:
+            self.conn.close()
+
+    def rows(self, statement, params=None):
+        with self.conn.cursor() as cur:
+            cur.execute(statement, params)
+            if cur.description:
+                cols = [d.name for d in cur.description]
+                return [dict(zip(cols, row)) for row in cur.fetchall()]
+            return []
+
+    def scalar(self, statement, params=None):
+        with self.conn.cursor() as cur:
+            cur.execute(statement, params)
+            result = cur.fetchone()
+            return result[0] if result else None
+
+    def metadata(self):
+        return self.rows("""
+            SELECT
+                n.nspname AS schema_name,
+                c.relname AS table_name,
+                a.attname AS column_name,
+                format_type(a.atttypid, a.atttypmod) AS data_type,
+                COALESCE(s.n_live_tup, 0) AS estimated_rows,
+                pg_total_relation_size(c.oid) AS total_bytes
+            FROM pg_class c
+            JOIN pg_namespace n ON n.oid = c.relnamespace
+            JOIN pg_attribute a ON a.attrelid = c.oid
+            LEFT JOIN pg_stat_user_tables s ON s.relid = c.oid
+            WHERE c.relkind IN ('r','p')
+              AND a.attnum > 0
+              AND NOT a.attisdropped
+              AND n.nspname NOT IN ('pg_catalog','information_schema')
+            ORDER BY n.nspname, c.relname, a.attnum
+        """)
+
+    def existing_indexes(self):
+        return self.rows("""
+            SELECT schemaname, tablename, indexname, indexdef
+            FROM pg_indexes
+            WHERE schemaname NOT IN ('pg_catalog','information_schema')
+        """)
+
+    def extension_available(self, name):
+        return bool(self.scalar(
+            "SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname=%s)",
+            (name,)
+        ))
+
+    def explain(self, query, analyze=False):
+        ok, reason = validate_readonly_query(query)
+        if not ok:
+            raise ValueError(f"Rejected SQL: {reason}")
+
+        options = (
+            "ANALYZE TRUE, BUFFERS TRUE, FORMAT JSON, TIMING TRUE"
+            if analyze else
+            "ANALYZE FALSE, FORMAT JSON"
+        )
+
+        statement = f"EXPLAIN ({options}) {query}"
+
+        with self.conn.transaction():
+            self.conn.execute("SET TRANSACTION READ ONLY")
+            result = self.scalar(statement)
+
+        if isinstance(result, str):
+            result = json.loads(result)
+
+        return result[0] if isinstance(result, list) else result
+
+
+def plan_features(plan):
+    root = plan.get("Plan", {})
+    stats = Counter()
+
+    def visit(node):
+        typ = node.get("Node Type", "")
+        stats["nodes"] += 1
+
+        if "Join" in typ or typ == "Nested Loop":
+            stats["joins"] += 1
+
+        if typ in ("Seq Scan", "Parallel Seq Scan"):
+            stats["seq_scans"] += 1
+
+        if "Index" in typ:
+            stats["index_scans"] += 1
+
+        for child in node.get("Plans", []):
+            visit(child)
+
+    visit(root)
+
+    return {
+        "planner_total_cost": finite(root.get("Total Cost")),
+        "planner_rows": finite(root.get("Plan Rows")),
+        "planner_width": finite(root.get("Plan Width")),
+        "plan_joins": stats["joins"],
+        "plan_seq_scans": stats["seq_scans"],
+        "plan_index_scans": stats["index_scans"],
+        "shared_hit_blocks": finite(plan.get("Shared Hit Blocks")),
+        "shared_read_blocks": finite(plan.get("Shared Read Blocks")),
+        "execution_time_ms": finite(
+            plan.get("Execution Time"), default=float("nan")
+        )
+    }
+
+
+def sql_features(query, plan=None):
+    upper = normalize_sql(query)
+
+    features = {
+        "sql_length": len(query),
+        "token_count": len(query.split()),
+        "join_count": len(re.findall(r"\bJOIN\b", upper)),
+        "where_count": len(re.findall(r"\bWHERE\b", upper)),
+        "group_count": len(re.findall(r"\bGROUP BY\b", upper)),
+        "order_count": len(re.findall(r"\bORDER BY\b", upper)),
+        "limit_count": len(re.findall(r"\bLIMIT\b", upper)),
+        "subquery_count": upper.count("(SELECT"),
+        "predicate_count": len(re.findall(
+            r"\b(AND|OR|IN|BETWEEN|LIKE|ILIKE)\b|[<>=]",
+            upper
+        )),
+        "table_count_approx": len(re.findall(
+            r"\b(?:FROM|JOIN)\s+[\w.]+", upper
+        ))
+    }
+
+    if plan is not None:
+        features.update(plan_features(plan))
+
+    return features
+
+
+
+def extract_v6_features(query, explain_result, scale_rows):
+    import math
+    import re
+
+    if not isinstance(query, str):
+        raise TypeError("SQL query must be a string.")
+
+    if not isinstance(explain_result, dict):
+        raise TypeError(
+            "EXPLAIN result must be a dictionary."
+        )
+
+    root = explain_result.get("Plan", {})
+
+    if not isinstance(root, dict):
+        raise TypeError(
+            "EXPLAIN Plan must be a dictionary."
+        )
+
+    nodes = []
+
+    def walk(node):
+        if not isinstance(node, dict):
+            return
+
+        nodes.append(node)
+
+        for child in node.get("Plans", []):
+            walk(child)
+
+    if root:
+        walk(root)
+
+    node_types = [
+        str(node.get("Node Type", ""))
+        for node in nodes
+    ]
+
+    normalized = normalize_sql(query)
+    upper = normalized.upper()
+
+    def count(pattern):
+        return len(
+            re.findall(
+                pattern,
+                upper,
+                flags=re.IGNORECASE
+            )
+        )
+
+    def indicator(fragment):
+        return int(
+            any(
+                fragment.lower() in node_type.lower()
+                for node_type in node_types
+            )
+        )
+
+    total_cost = max(
+        0.0,
+        finite(root.get("Total Cost"))
+    )
+
+    startup_cost = max(
+        0.0,
+        finite(root.get("Startup Cost"))
+    )
+
+    estimated_rows = max(
+        0.0,
+        finite(root.get("Plan Rows"))
+    )
+
+    node_count = len(nodes)
+
+    join_count = count(r"\bJOIN\b")
+    where_count = count(r"\bWHERE\b")
+
+    comparison_pattern = (
+        r"<=|>=|<>|!=|"
+        r"(?<![<>!=])=(?!=)|"
+        r"(?<![<])<(?![=>])|"
+        r"(?<![>])>(?!=)"
+    )
+
+    comparison_count = count(
+        comparison_pattern
+    )
+
+    like_count = count(
+        r"\b(?:LIKE|ILIKE)\b"
+    )
+
+    in_count = count(
+        r"\bIN\s*\("
+    )
+
+    between_count = count(
+        r"\bBETWEEN\b"
+    )
+
+    is_null_count = count(
+        r"\bIS\s+(?:NOT\s+)?NULL\b"
+    )
+
+    predicate_count = (
+        comparison_count
+        + like_count
+        + in_count
+        + between_count
+        + is_null_count
+    )
+
+    depth = 0
+    max_depth = 0
+
+    for character in normalized:
+        if character == "(":
+            depth += 1
+            max_depth = max(
+                max_depth,
+                depth
+            )
+
+        elif character == ")":
+            depth = max(
+                0,
+                depth - 1
+            )
+
+    literal_pattern = (
+        r"'(?:''|[^'])*'|"
+        r"\b\d+(?:\.\d+)?\b"
+    )
+
+    aggregate_pattern = (
+        r"\b(?:COUNT|SUM|AVG|MIN|MAX)\s*\("
+    )
+
+    table_pattern = (
+        r"\b(?:FROM|JOIN)\s+"
+        r"[A-Z_][A-Z0-9_.]*"
+    )
+
+    features = {
+        "log_planner_cost": math.log1p(
+            total_cost
+        ),
+
+        "log_startup_cost": math.log1p(
+            startup_cost
+        ),
+
+        "log_estimated_rows": math.log1p(
+            estimated_rows
+        ),
+
+        "log_plan_nodes": math.log1p(
+            node_count
+        ),
+
+        "sql_length": len(query),
+
+        "sql_tokens": len(
+            normalized.split()
+        ),
+
+        "join_count": join_count,
+
+        "where_count": where_count,
+
+        "and_count": count(
+            r"\bAND\b"
+        ),
+
+        "or_count": count(
+            r"\bOR\b"
+        ),
+
+        "group_by_count": count(
+            r"\bGROUP\s+BY\b"
+        ),
+
+        "order_by_count": count(
+            r"\bORDER\s+BY\b"
+        ),
+
+        "having_count": count(
+            r"\bHAVING\b"
+        ),
+
+        "limit_count": count(
+            r"\bLIMIT\b"
+        ),
+
+        "distinct_count": count(
+            r"\bDISTINCT\b"
+        ),
+
+        "aggregate_count": count(
+            aggregate_pattern
+        ),
+
+        "subquery_count": count(
+            r"\(\s*SELECT\b"
+        ),
+
+        "case_count": count(
+            r"\bCASE\b"
+        ),
+
+        "union_count": count(
+            r"\bUNION\b"
+        ),
+
+        "window_count": count(
+            r"\bOVER\s*\("
+        ),
+
+        "table_count": count(
+            table_pattern
+        ),
+
+        "predicate_count": predicate_count,
+
+        "comparison_count": comparison_count,
+
+        "like_count": like_count,
+
+        "in_count": in_count,
+
+        "between_count": between_count,
+
+        "is_null_count": is_null_count,
+
+        "select_count": count(
+            r"\bSELECT\b"
+        ),
+
+        "literal_count": count(
+            literal_pattern
+        ),
+
+        "nested_depth": max_depth,
+
+        "scale_log": math.log1p(
+            max(
+                0.0,
+                finite(scale_rows)
+            )
+        ),
+
+        "planner_cost_per_row": (
+            total_cost /
+            max(estimated_rows, 1.0)
+        ),
+
+        "planner_cost_per_node": (
+            total_cost /
+            max(node_count, 1)
+        ),
+
+        "estimated_rows_per_node": (
+            estimated_rows /
+            max(node_count, 1)
+        ),
+
+        "join_cost_interaction": (
+            join_count * total_cost
+        ),
+
+        "filter_cost_interaction": (
+            where_count * total_cost
+        ),
+
+        "sort_indicator": indicator(
+            "Sort"
+        ),
+
+        "hash_join_indicator": indicator(
+            "Hash Join"
+        ),
+
+        "nested_loop_indicator": indicator(
+            "Nested Loop"
+        ),
+
+        "seq_scan_indicator": indicator(
+            "Seq Scan"
+        ),
+
+        "index_scan_indicator": indicator(
+            "Index Scan"
+        )
+    }
+
+    required_features = [
+        "log_planner_cost",
+        "log_startup_cost",
+        "log_estimated_rows",
+        "log_plan_nodes",
+        "sql_length",
+        "sql_tokens",
+        "join_count",
+        "where_count",
+        "and_count",
+        "or_count",
+        "group_by_count",
+        "order_by_count",
+        "having_count",
+        "limit_count",
+        "distinct_count",
+        "aggregate_count",
+        "subquery_count",
+        "case_count",
+        "union_count",
+        "window_count",
+        "table_count",
+        "predicate_count",
+        "comparison_count",
+        "like_count",
+        "in_count",
+        "between_count",
+        "is_null_count",
+        "select_count",
+        "literal_count",
+        "nested_depth",
+        "scale_log",
+        "planner_cost_per_row",
+        "planner_cost_per_node",
+        "estimated_rows_per_node",
+        "join_cost_interaction",
+        "filter_cost_interaction",
+        "sort_indicator",
+        "hash_join_indicator",
+        "nested_loop_indicator",
+        "seq_scan_indicator",
+        "index_scan_indicator"
+    ]
+
+    missing = [
+        feature
+        for feature in required_features
+        if feature not in features
+    ]
+
+    unexpected = [
+        feature
+        for feature in features
+        if feature not in required_features
+    ]
+
+    if missing or unexpected:
+        raise RuntimeError(
+            "V6 feature schema mismatch. "
+            f"Missing={missing}; "
+            f"Unexpected={unexpected}"
+        )
+
+    if len(features) != 41:
+        raise RuntimeError(
+            f"Expected 41 features, got {len(features)}."
+        )
+
+    for name, value in features.items():
+        if not isinstance(
+            value,
+            (int, float)
+        ):
+            raise TypeError(
+                f"Non-numeric feature: {name}"
+            )
+
+        if not math.isfinite(
+            float(value)
+        ):
+            raise ValueError(
+                f"Non-finite feature: {name}"
+            )
+
+    return {
+        name: features[name]
+        for name in required_features
+    }
+
+
+
+class V6Models:
+    def __init__(self, model_dir, audit):
+        self.model_dir = Path(model_dir) if model_dir else None
+        self.audit = audit
+
+        self.imputer = None
+        self.classifier = None
+        self.regressor = None
+
+        self.features = []
+        self.threshold = None
+        self.expensive_threshold_ms = None
+        self.scale_aware = False
+
+        self.status = "unavailable"
+        self.manifest = {}
+
+        if self.model_dir:
+            self.load()
+
+    def load(self):
+        directory = self.model_dir
+
+        if directory.is_file():
+            model_path = directory
+        else:
+            candidates = [
+                directory / "v6_improved_models.joblib",
+                directory / "models" / "v6_improved_models.joblib"
+            ]
+
+            model_path = next(
+                (p for p in candidates if p.is_file()),
+                None
+            )
+
+        if model_path is None or not model_path.is_file():
+            self.status = "model_file_missing"
+            self.audit.write(
+                "model_load_failed",
+                reason="v6_improved_models.joblib not found",
+                model_dir=str(directory)
+            )
+            return
+
+        try:
+            bundle = joblib.load(model_path)
+
+            if not isinstance(bundle, dict):
+                raise TypeError(
+                    "Expected a combined V6 model dictionary."
+                )
+
+            required = {
+                "imputer",
+                "classifier",
+                "regressor",
+                "features",
+                "probability_threshold",
+                "expensive_threshold_ms"
+            }
+
+            missing = required - set(bundle)
+
+            if missing:
+                raise ValueError(
+                    f"Missing bundle keys: {sorted(missing)}"
+                )
+
+            imputer = bundle["imputer"]
+            classifier = bundle["classifier"]
+            regressor = bundle["regressor"]
+            features = list(bundle["features"])
+
+            if len(features) != 41:
+                raise ValueError(
+                    f"Expected 41 V6 features, got {len(features)}."
+                )
+
+            if hasattr(imputer, "feature_names_in_"):
+                expected = list(imputer.feature_names_in_)
+
+                if expected != features:
+                    raise ValueError(
+                        "V6 feature order does not match the imputer."
+                    )
+
+            if not hasattr(classifier, "predict_proba"):
+                raise TypeError(
+                    "V6 classifier lacks predict_proba."
+                )
+
+            if 1 not in list(classifier.classes_):
+                raise ValueError(
+                    "Positive class 1 not found."
+                )
+
+            self.imputer = imputer
+            self.classifier = classifier
+            self.regressor = regressor
+            self.features = features
+
+            self.threshold = float(
+                bundle["probability_threshold"]
+            )
+            self.expensive_threshold_ms = float(
+                bundle["expensive_threshold_ms"]
+            )
+            self.scale_aware = bool(
+                bundle.get("scale_aware", False)
+            )
+
+            self.status = "loaded"
+
+            self.manifest = {
+                "model_path": str(model_path),
+                "features": features,
+                "probability_threshold": self.threshold,
+                "expensive_threshold_ms": (
+                    self.expensive_threshold_ms
+                ),
+                "regression_target_transform": "unverified",
+                "feature_formulas": "unverified"
+            }
+
+            self.audit.write(
+                "model_loaded",
+                model_path=str(model_path),
+                feature_count=len(features),
+                probability_threshold=self.threshold,
+                expensive_threshold_ms=(
+                    self.expensive_threshold_ms
+                )
+            )
+
+        except Exception as exc:
+            self.status = "load_failed"
+            self.audit.write(
+                "model_load_failed",
+                error=str(exc)
+            )
+
+    def predict(self, features):
+        result = {
+            "model_status": self.status,
+            "expensive_probability": None,
+            "predicted_expensive": None,
+            "predicted_latency_ms": None,
+            "raw_regression_prediction": None,
+            "missing_features": [],
+            "feature_formulas_verified": False,
+            "regression_target_transform_verified": False,
+            "eligible_for_automatic_approval": False
+        }
+
+        if self.status != "loaded":
+            return result
+
+        missing = [
+            name for name in self.features
+            if name not in features
+        ]
+
+        if missing:
+            result["model_status"] = "feature_mismatch"
+            result["missing_features"] = missing
+            return result
+
+        try:
+            frame = pd.DataFrame(
+                [{
+                    name: features[name]
+                    for name in self.features
+                }],
+                columns=self.features
+            )
+
+            for name in self.features:
+                frame[name] = pd.to_numeric(
+                    frame[name],
+                    errors="coerce"
+                )
+
+            frame = frame.replace(
+                [np.inf, -np.inf],
+                np.nan
+            )
+
+            transformed = self.imputer.transform(frame)
+
+            probabilities = self.classifier.predict_proba(
+                transformed
+            )[0]
+
+            classes = list(self.classifier.classes_)
+            positive_index = classes.index(1)
+
+            probability = float(
+                probabilities[positive_index]
+            )
+
+            regression_output = float(
+                self.regressor.predict(transformed)[0]
+            )
+
+            result.update({
+                "model_status": "loaded_unverified_features",
+                "expensive_probability": probability,
+                "predicted_expensive": (
+                    probability >= self.threshold
+                ),
+                "raw_regression_prediction": regression_output
+            })
+
+        except Exception as exc:
+            result["model_status"] = "prediction_failed"
+            result["error"] = str(exc)
+
+        return result
+
+def load_workload(path, limit):
+    path = Path(path)
+
+    if not path.exists():
+        raise FileNotFoundError(path)
+
+    if path.suffix.lower() == ".json":
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(data, dict):
+            data = data.get("queries", data.get("workload", []))
+        frame = pd.DataFrame(data)
+    else:
+        frame = pd.read_csv(path)
+
+    possible = [
+        "query_text", "sql_text", "query",
+        "sql", "query_sql", "statement"
+    ]
+
+    column = next(
+        (c for c in possible if c in frame.columns),
+        None
+    )
+
+    if column is None:
+        raise ValueError(
+            "Workload must contain one of: " + ", ".join(possible)
+        )
+
+    frame = frame.rename(columns={column: "query_text"})
+    frame = frame.dropna(subset=["query_text"])
+
+    frame["query_text"] = frame["query_text"].astype(str)
+
+    valid = frame["query_text"].apply(validate_readonly_query)
+    frame["safe"] = valid.apply(lambda x: x[0])
+    frame["rejection_reason"] = valid.apply(lambda x: x[1])
+
+    frame["fingerprint"] = frame["query_text"].apply(fingerprint)
+
+    return frame.head(limit).copy()
+
+
+def characterize(frame):
+    safe = frame[frame["safe"]].copy()
+
+    counts = safe["fingerprint"].value_counts().to_dict()
+
+    rows = []
+
+    for _, row in safe.iterrows():
+        query = row["query_text"]
+        features = sql_features(query)
+
+        tables = re.findall(
+            r"\b(?:FROM|JOIN)\s+([a-zA-Z_][\w.]*)",
+            query, flags=re.IGNORECASE
+        )
+
+        rows.append({
+            "fingerprint": row["fingerprint"],
+            "frequency": counts[row["fingerprint"]],
+            "tables": "|".join(sorted(set(tables))),
+            **features
+        })
+
+    return rows
+
+
+def drift_analysis(reference, current):
+    result = {
+        "available": False,
+        "drift_detected": None,
+        "reason": "",
+        "tests": {}
+    }
+
+    if reference is None or reference.empty:
+        result["reason"] = "reference_workload_unavailable"
+        return result
+
+    if current.empty:
+        result["reason"] = "current_workload_empty"
+        return result
+
+    ref = pd.DataFrame(characterize(reference))
+    cur = pd.DataFrame(characterize(current))
+
+    if ref.empty or cur.empty:
+        result["reason"] = "insufficient_valid_queries"
+        return result
+
+    result["available"] = True
+
+    significant = 0
+
+    for feature in [
+        "sql_length", "token_count", "join_count",
+        "predicate_count", "table_count_approx"
+    ]:
+        if feature not in ref or feature not in cur:
+            continue
+
+        stat, pvalue = ks_2samp(
+            ref[feature].astype(float),
+            cur[feature].astype(float)
+        )
+
+        result["tests"][feature] = {
+            "ks_statistic": float(stat),
+            "p_value": float(pvalue),
+            "reference_median": median(ref[feature]),
+            "current_median": median(cur[feature])
+        }
+
+        if pvalue < 0.01 and stat >= 0.2:
+            significant += 1
+
+    ref_fp = set(ref["fingerprint"])
+    cur_fp = set(cur["fingerprint"])
+
+    result["unseen_fingerprint_rate"] = (
+        len(cur_fp - ref_fp) / max(1, len(cur_fp))
+    )
+
+    result["drift_detected"] = (
+        significant >= 2 or
+        result["unseen_fingerprint_rate"] > 0.5
+    )
+
+    return result
+
+
+def schema_catalog(metadata):
+    catalog = defaultdict(dict)
+
+    for row in metadata:
+        key = (
+            row["schema_name"].lower(),
+            row["table_name"].lower()
+        )
+        catalog[key][row["column_name"].lower()] = row
+
+    return catalog
+
+
+def extract_tables(query, catalog):
+    matches = re.findall(
+        r"\b(?:FROM|JOIN)\s+([a-zA-Z_][\w.]*)",
+        query, flags=re.IGNORECASE
+    )
+
+    result = []
+
+    for raw in matches:
+        parts = raw.lower().split(".")
+
+        if len(parts) == 2:
+            key = tuple(parts)
+            if key in catalog:
+                result.append(key)
+        else:
+            matches = [
+                k for k in catalog
+                if k[1] == parts[0]
+            ]
+
+            if len(matches) == 1:
+                result.append(matches[0])
+
+    return list(dict.fromkeys(result))
+
+
+def extract_columns(query, table_key, catalog):
+    columns = catalog[table_key]
+    found = []
+
+    for col in columns:
+        if re.search(
+            rf"\b{re.escape(col)}\b\s*"
+            r"(?:=|<|>|<=|>=|IN\b|BETWEEN\b|LIKE\b|ILIKE\b)",
+            query, re.IGNORECASE
+        ):
+            found.append(col)
+
+    return found
+
+
+def candidate_key(schema, table, cols, method, predicate=""):
+    return digest(
+        (schema, table, tuple(cols), method, predicate)
+    )[:16]
+
+
+def generate_candidates(frame, metadata, existing_indexes):
+    catalog = schema_catalog(metadata)
+    candidates = {}
+    existing_defs = [
+        x["indexdef"].lower() for x in existing_indexes
+    ]
+
+    counts = frame.loc[
+        frame["safe"], "fingerprint"
+    ].value_counts()
+
+    unique = frame[
+        frame["safe"]
+    ].drop_duplicates("fingerprint")
+
+    for _, row in unique.iterrows():
+        query = row["query_text"]
+        freq = int(counts[row["fingerprint"]])
+
+        for schema, table in extract_tables(query, catalog):
+            cols = extract_columns(
+                query, (schema, table), catalog
+            )
+
+            if not cols:
+                continue
+
+            proposed = []
+
+            for col in cols[:5]:
+                proposed.append(([col], "btree", ""))
+
+            if len(cols) >= 2:
+                proposed.append((cols[:2], "btree", ""))
+
+            for col in cols:
+                info = catalog[(schema, table)][col]
+                typ = str(info["data_type"]).lower()
+                size = finite(info["total_bytes"])
+
+                if (
+                    ("timestamp" in typ or "date" in typ or
+                     "integer" in typ or "bigint" in typ)
+                    and size > 64 * 1024 * 1024
+                ):
+                    proposed.append(([col], "brin", ""))
+
+                if "jsonb" in typ and re.search(
+                    rf"\b{re.escape(col)}\b\s*(?:@>|<@|\?)",
+                    query
+                ):
+                    proposed.append(([col], "gin", ""))
+
+                if "[]" in typ and "@>" in query:
+                    proposed.append(([col], "gin", ""))
+
+            for col in cols:
+                predicate_match = re.search(
+                    rf"\b{re.escape(col)}\s+IS\s+NOT\s+NULL\b",
+                    query, re.IGNORECASE
+                )
+
+                if predicate_match:
+                    proposed.append((
+                        [col], "btree",
+                        f"{col} IS NOT NULL"
+                    ))
+
+            for columns, method, predicate in proposed:
+                if method not in SUPPORTED_INDEX_TYPES:
+                    continue
+
+                col_signature = ", ".join(columns).lower()
+
+                if any(
+                    f"({col_signature})" in definition
+                    and table.lower() in definition
+                    for definition in existing_defs
+                ):
+                    continue
+
+                key = candidate_key(
+                    schema, table, columns, method, predicate
+                )
+
+                if key not in candidates:
+                    candidates[key] = Candidate(
+                        candidate_id=key,
+                        table_schema=schema,
+                        table_name=table,
+                        columns=columns,
+                        index_type=method,
+                        predicate=predicate,
+                        source="workload"
+                    )
+
+                candidates[key].frequency += freq
+
+    return list(candidates.values())
+
+
+def index_definition(candidate, name, hypothetical=False):
+    statement = sql.SQL(
+        "CREATE INDEX {name} ON {schema}.{table} "
+        "USING {method} ({columns})"
+    ).format(
+        name=sql.Identifier(name),
+        schema=sql.Identifier(candidate.table_schema),
+        table=sql.Identifier(candidate.table_name),
+        method=sql.SQL(candidate.index_type),
+        columns=sql.SQL(", ").join(
+            sql.Identifier(c) for c in candidate.columns
+        )
+    )
+
+    if candidate.predicate:
+        if not re.fullmatch(
+            r"[a-zA-Z_]\w* IS NOT NULL",
+            candidate.predicate,
+            re.IGNORECASE
+        ):
+            raise ValueError("Unsupported partial index predicate")
+
+        statement += sql.SQL(" WHERE ") + sql.SQL(
+            candidate.predicate
+        )
+
+    return statement
+
+
+def relevant_queries(candidate, frame):
+    results = []
+
+    for _, row in frame[frame["safe"]].iterrows():
+        query = row["query_text"].lower()
+
+        if candidate.table_name.lower() not in query:
+            continue
+
+        if not any(
+            re.search(rf"\b{re.escape(c)}\b", query)
+            for c in candidate.columns
+        ):
+            continue
+
+        results.append(query if False else row["query_text"])
+
+    return list(dict.fromkeys(results))
+
+
+def what_if(db, candidate, queries, audit):
+    output = {
+        "candidate_id": candidate.candidate_id,
+        "available": False,
+        "before_cost": None,
+        "after_cost": None,
+        "gain_pct": None,
+        "error": None
+    }
+
+    if not db.extension_available("hypopg"):
+        output["error"] = "hypopg_not_installed"
+        return output
+
+    if not queries:
+        output["error"] = "no_matching_queries"
+        return output
+
+    name = "hyp_" + candidate.candidate_id
+    definition = index_definition(
+        candidate, name
+    ).as_string(db.conn)
+
+    try:
+        before = []
+
+        for query in queries[:5]:
+            plan = db.explain(query, analyze=False)
+            before.append(
+                plan_features(plan)["planner_total_cost"]
+            )
+
+        with db.conn.transaction():
+            db.scalar(
+                "SELECT hypopg_create_index(%s)",
+                (definition,)
+            )
+
+            after = []
+
+            for query in queries[:5]:
+                plan = db.explain(query, analyze=False)
+                after.append(
+                    plan_features(plan)["planner_total_cost"]
+                )
+
+            db.scalar("SELECT hypopg_reset()")
+
+        base = sum(before)
+        new = sum(after)
+
+        gain = 100 * (base - new) / max(base, 1e-9)
+
+        output.update({
+            "available": True,
+            "before_cost": base,
+            "after_cost": new,
+            "gain_pct": gain
+        })
+
+    except Exception as exc:
+        output["error"] = str(exc)
+
+        try:
+            db.scalar("SELECT hypopg_reset()")
+        except Exception:
+            pass
+
+    audit.write("what_if", **output)
+    return output
+
+
+def estimate_candidate_resources(candidate, metadata):
+    matching = [
+        r for r in metadata
+        if r["schema_name"] == candidate.table_schema
+        and r["table_name"] == candidate.table_name
+    ]
+
+    if not matching:
+        return 0.0, 1.0
+
+    rows = max(
+        finite(matching[0]["estimated_rows"]),
+        1.0
+    )
+
+    bytes_per_entry = (
+        24 + 8 * len(candidate.columns)
+    )
+
+    if candidate.index_type == "brin":
+        bytes_per_entry = 0.5
+
+    size_mb = rows * bytes_per_entry / (1024 ** 2)
+
+    write_penalty = (
+        0.15 * len(candidate.columns)
+        if candidate.index_type == "btree"
+        else 0.08
+    )
+
+    return size_mb, write_penalty
+
+
+def rank_candidates(
+    candidates, metadata, drift,
+    model_available, args,
+    ablation="full"
+):
+    ranked = []
+
+    drift_flag = bool(drift.get("drift_detected"))
+
+    for c in candidates:
+        size_mb, write_penalty = estimate_candidate_resources(
+            c, metadata
+        )
+
+        c.estimated_size_mb = size_mb
+        c.write_penalty = write_penalty
+
+        benefit = max(0.0, c.estimated_gain_pct)
+
+        frequency_score = math.log1p(c.frequency)
+
+        risk = 0.0
+
+        if drift_flag and ablation != "no_drift":
+            risk += 0.3
+
+        if not model_available and ablation != "no_ai":
+            risk += 0.2
+
+        if c.index_type == "gin":
+            risk += 0.1
+
+        c.risk = min(1.0, risk)
+
+        if ablation == "no_whatif":
+            benefit = 0.0
+
+        score = (
+            0.50 * benefit +
+            4.0 * frequency_score -
+            0.35 * size_mb -
+            8.0 * write_penalty -
+            12.0 * risk
+        )
+
+        if ablation == "no_feedback":
+            pass
+
+        c.score = round(score, 5)
+
+        c.approved = (
+            benefit >= args.minimum_gain_pct
+            and size_mb <= args.maximum_index_mb
+            and risk <= args.maximum_risk
+            and c.score > 0
+        )
+
+        if not c.approved:
+            c.reason = "safety_or_benefit_gate_failed"
+        else:
+            c.reason = "provisional_approval"
+
+        ranked.append(c)
+
+    return sorted(
+        ranked,
+        key=lambda c: c.score,
+        reverse=True
+    )
+
+
+def measure_query(db, query):
+    start = time.perf_counter()
+    plan = db.explain(query, analyze=True)
+    wall_ms = (time.perf_counter() - start) * 1000
+
+    features = plan_features(plan)
+
+    return {
+        "wall_ms": wall_ms,
+        "execution_ms": features["execution_time_ms"],
+        "planner_cost": features["planner_total_cost"],
+        "shared_hit_blocks": features["shared_hit_blocks"],
+        "shared_read_blocks": features["shared_read_blocks"]
+    }
+
+
+def benchmark(db, queries, repeats, seed):
+    rng = np.random.default_rng(seed)
+
+    sequence = list(range(len(queries))) * repeats
+    rng.shuffle(sequence)
+
+    rows = []
+
+    for sequence_id, index in enumerate(sequence):
+        query = queries[index]
+
+        try:
+            result = measure_query(db, query)
+
+            rows.append({
+                "sequence": sequence_id,
+                "query_id": index,
+                "fingerprint": fingerprint(query),
+                "success": True,
+                **result
+            })
+
+        except Exception as exc:
+            rows.append({
+                "sequence": sequence_id,
+                "query_id": index,
+                "fingerprint": fingerprint(query),
+                "success": False,
+                "error": str(exc)
+            })
+
+    return rows
+
+
+def summarize_benchmark(rows):
+    successful = [
+        r for r in rows if r.get("success")
+    ]
+
+    latencies = [
+        r["wall_ms"] for r in successful
+    ]
+
+    total_ms = sum(latencies)
+
+    return {
+        "attempts": len(rows),
+        "successful": len(successful),
+        "failed": len(rows) - len(successful),
+        "p50_ms": median(latencies),
+        "p95_ms": percentile(latencies, 95),
+        "mean_ms": (
+            statistics.mean(latencies)
+            if latencies else None
+        ),
+        "throughput_queries_per_s": (
+            len(successful) / (total_ms / 1000)
+            if total_ms > 0 else None
+        ),
+        "mean_shared_read_blocks": (
+            statistics.mean(
+                r["shared_read_blocks"]
+                for r in successful
+            ) if successful else None
+        )
+    }
+
+
+def bootstrap_paired(before, after, iterations, seed):
+    pairs = []
+
+    b = defaultdict(list)
+    a = defaultdict(list)
+
+    for row in before:
+        if row.get("success"):
+            b[row["fingerprint"]].append(row["wall_ms"])
+
+    for row in after:
+        if row.get("success"):
+            a[row["fingerprint"]].append(row["wall_ms"])
+
+    for key in set(b) & set(a):
+        pairs.append((
+            float(np.mean(b[key])),
+            float(np.mean(a[key]))
+        ))
+
+    if len(pairs) < 2:
+        return {
+            "available": False,
+            "reason": "fewer_than_two_paired_fingerprints"
+        }
+
+    pairs = np.array(pairs)
+    rng = np.random.default_rng(seed)
+
+    improvements = []
+
+    for _ in range(iterations):
+        sample = rng.integers(
+            0, len(pairs), size=len(pairs)
+        )
+        subset = pairs[sample]
+
+        before_mean = np.mean(subset[:, 0])
+        after_mean = np.mean(subset[:, 1])
+
+        improvement = 100 * (
+            before_mean - after_mean
+        ) / max(before_mean, 1e-9)
+
+        improvements.append(improvement)
+
+    actual = 100 * (
+        np.mean(pairs[:, 0]) -
+        np.mean(pairs[:, 1])
+    ) / max(np.mean(pairs[:, 0]), 1e-9)
+
+    return {
+        "available": True,
+        "paired_fingerprints": len(pairs),
+        "improvement_pct": float(actual),
+        "ci95_low": percentile(improvements, 2.5),
+        "ci95_high": percentile(improvements, 97.5)
+    }
+
+
+def assert_benchmark_safety(args):
+    name = args.database.lower()
+
+    if name in PROTECTED_DATABASES:
+        raise PermissionError(
+            f"Protected database: {args.database}"
+        )
+
+    if not name.startswith(ALLOWED_BENCHMARK_PREFIX):
+        raise PermissionError(
+            "Experiment database must start with "
+            "'adaptive_healthcare_phase9_'"
+        )
+
+    if not args.allow_index_changes:
+        raise PermissionError(
+            "Index changes require --allow-index-changes"
+        )
+
+    if args.confirm_database != args.database:
+        raise PermissionError(
+            "Use --confirm-database with the exact database name"
+        )
+
+
+def create_experimental_index(db, candidate, audit):
+    name = "p9exp_" + candidate.candidate_id
+
+    statement = index_definition(candidate, name)
+
+    db.conn.execute(statement)
+
+    audit.write(
+        "index_created",
+        index=name,
+        database=db.name,
+        candidate=asdict(candidate)
+    )
+
+    return name
+
+
+def drop_experimental_index(db, candidate, name, audit):
+    if not name.startswith("p9exp_"):
+        raise PermissionError("Not a Phase 9 experimental index")
+
+    statement = sql.SQL(
+        "DROP INDEX IF EXISTS {}.{}"
+    ).format(
+        sql.Identifier(candidate.table_schema),
+        sql.Identifier(name)
+    )
+
+    db.conn.execute(statement)
+
+    audit.write(
+        "index_removed",
+        index=name,
+        database=db.name
+    )
+
+
+def experiment_candidate(db, candidate, queries, args, audit):
+    if not queries:
+        return {"status": "no_queries"}
+
+    index_name = "p9exp_" + candidate.candidate_id
+
+    existing = db.scalar("""
+        SELECT EXISTS(
+            SELECT 1
+            FROM pg_indexes
+            WHERE schemaname=%s AND indexname=%s
+        )
+    """, (candidate.table_schema, index_name))
+
+    if existing:
+        return {
+            "status": "index_name_already_exists",
+            "index": index_name
+        }
+
+    before = []
+    after = []
+    created = False
+
+    try:
+        before = benchmark(
+            db, queries,
+            args.repeats,
+            args.seed
+        )
+
+        create_experimental_index(
+            db, candidate, audit
+        )
+
+        created = True
+
+        after = benchmark(
+            db, queries,
+            args.repeats,
+            args.seed + 1
+        )
+
+        before_summary = summarize_benchmark(before)
+        after_summary = summarize_benchmark(after)
+
+        statistics_result = bootstrap_paired(
+            before, after,
+            args.bootstrap,
+            args.seed
+        )
+
+        return {
+            "status": "completed",
+            "candidate": asdict(candidate),
+            "before": before_summary,
+            "after": after_summary,
+            "statistics": statistics_result,
+            "before_runs": before,
+            "after_runs": after
+        }
+
+    except Exception as exc:
+        audit.write(
+            "experiment_failure",
+            candidate_id=candidate.candidate_id,
+            error=str(exc)
+        )
+
+        return {
+            "status": "failed",
+            "error": str(exc),
+            "before_runs": before,
+            "after_runs": after
+        }
+
+    finally:
+        if created:
+            try:
+                drop_experimental_index(
+                    db, candidate, index_name, audit
+                )
+            except Exception as exc:
+                audit.write(
+                    "rollback_failed",
+                    index=index_name,
+                    error=str(exc)
+                )
+                raise RuntimeError(
+                    "EXPERIMENTAL INDEX CLEANUP FAILED: "
+                    + index_name
+                ) from exc
+
+
+def feedback_report(experiments):
+    rows = []
+
+    for result in experiments:
+        if result.get("status") != "completed":
+            continue
+
+        candidate = result["candidate"]
+        measured = result["statistics"]
+
+        if not measured.get("available"):
+            continue
+
+        predicted = candidate["estimated_gain_pct"]
+        actual = measured["improvement_pct"]
+
+        rows.append({
+            "candidate_id": candidate["candidate_id"],
+            "predicted_gain_pct": predicted,
+            "measured_gain_pct": actual,
+            "prediction_error_pct_points": actual - predicted,
+            "positive_improvement": actual > 0,
+            "ci95_low": measured["ci95_low"],
+            "ci95_high": measured["ci95_high"]
+        })
+
+    return rows
+
+
+def ablation_report(candidates, metadata, drift, model_available, args):
+    output = []
+
+    for name in [
+        "full",
+        "no_ai",
+        "no_drift",
+        "no_whatif",
+        "no_feedback"
+    ]:
+        copied = [
+            Candidate(**asdict(c))
+            for c in candidates
+        ]
+
+        ranked = rank_candidates(
+            copied, metadata, drift,
+            model_available, args,
+            ablation=name
+        )
+
+        output.append({
+            "ablation": name,
+            "candidate_count": len(ranked),
+            "approved_count": sum(c.approved for c in ranked),
+            "top_candidate": (
+                ranked[0].candidate_id
+                if ranked else None
+            ),
+            "top_score": (
+                ranked[0].score
+                if ranked else None
+            )
+        })
+
+    return output
+
+
+def baseline_report(candidates, predictions):
+    ordered = sorted(
+        candidates,
+        key=lambda c: c.frequency,
+        reverse=True
+    )
+
+    heuristic = [
+        c.candidate_id for c in ordered[:5]
+    ]
+
+    planner = sorted(
+        candidates,
+        key=lambda c: c.estimated_gain_pct,
+        reverse=True
+    )
+
+    ai_available = any(
+        p.get("model_status", "").startswith("loaded")
+        or p.get("model_status") ==
+        "classifier_loaded_regression_transform_unknown"
+        for p in predictions
+    )
+
+    return [
+        {
+            "baseline": "postgresql_existing_indexes",
+            "candidate_ids": [],
+            "status": "requires_measured_control"
+        },
+        {
+            "baseline": "frequency_heuristic",
+            "candidate_ids": heuristic,
+            "status": "recommendations_generated"
+        },
+        {
+            "baseline": "planner_cost_ranking",
+            "candidate_ids": [
+                c.candidate_id for c in planner[:5]
+            ],
+            "status": "recommendations_generated"
+        },
+        {
+            "baseline": "ai_guided",
+            "candidate_ids": [],
+            "status": (
+                "model_available_requires_controlled_experiment"
+                if ai_available
+                else "unavailable_model"
+            )
+        },
+        {
+            "baseline": "adaptive_full",
+            "candidate_ids": [
+                c.candidate_id for c in candidates
+                if c.approved
+            ][:5],
+            "status": "requires_closed_loop_trials"
+        }
+    ]
+
+
+def write_manifest(directory, args, workload):
+    manifest = {
+        "timestamp": utcnow(),
+        "run_id": Path(directory).name,
+        "python": sys.version,
+        "platform": platform.platform(),
+        "numpy": np.__version__,
+        "pandas": pd.__version__,
+        "psycopg": psycopg.__version__,
+        "seed": args.seed,
+        "arguments": {
+            k: v for k, v in vars(args).items()
+            if k != "password"
+        },
+        "workload_sha256": digest(
+            workload["query_text"].tolist()
+        ),
+        "workload_rows": len(workload),
+        "git_commit": None
+    }
+
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode == 0:
+            manifest["git_commit"] = result.stdout.strip()
+    except Exception:
+        pass
+
+    save_json(Path(directory) / "manifest.json", manifest)
+
+
+def evaluate_scale(args, database, frame, directory, audit):
+    result = {
+        "database": database,
+        "status": "not_started"
+    }
+
+    try:
+        with Database(args, database) as db:
+            metadata = db.metadata()
+
+            result["status"] = "connected"
+            result["table_count"] = len(set(
+                (r["schema_name"], r["table_name"])
+                for r in metadata
+            ))
+
+            queries = frame[frame["safe"]][
+                "query_text"
+            ].drop_duplicates().head(args.scale_query_limit)
+
+            measurements = []
+
+            for query in queries:
+                try:
+                    measurement = measure_query(db, query)
+                    measurements.append({
+                        "fingerprint": fingerprint(query),
+                        "success": True,
+                        **measurement
+                    })
+                except Exception as exc:
+                    measurements.append({
+                        "fingerprint": fingerprint(query),
+                        "success": False,
+                        "error": str(exc)
+                    })
+
+            result["measurements"] = measurements
+            result["summary"] = summarize_benchmark(measurements)
+            result["status"] = "completed"
+
+    except Exception as exc:
+        result["status"] = "failed"
+        result["error"] = str(exc)
+
+    audit.write("scale_evaluation", database=database, status=result["status"])
+
+    return result
+
+
+def run(args):
+    run_id = datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + uuid.uuid4().hex[:8]
+
+    output = Path(args.output) / run_id
+    output.mkdir(parents=True, exist_ok=True)
+
+    audit = Audit(output)
+
+    if args.mode == "experiment":
+        assert_benchmark_safety(args)
+
+    if not args.password:
+        import getpass
+        args.password = getpass.getpass("PostgreSQL password: ")
+
+    workload = load_workload(
+        args.workload, args.max_queries
+    )
+
+    write_manifest(output, args, workload)
+
+    save_csv(
+        output / "workload_validation.csv",
+        workload.to_dict("records")
+    )
+
+    characterization = characterize(workload)
+
+    save_csv(
+        output / "workload_characterization.csv",
+        characterization
+    )
+
+    reference = None
+
+    if args.reference_workload:
+        reference = load_workload(
+            args.reference_workload,
+            args.max_queries
+        )
+
+    drift = drift_analysis(reference, workload)
+    save_json(output / "drift_analysis.json", drift)
+
+    models = V6Models(args.model_dir, audit)
+
+    predictions = []
+    experiments = []
+
+    with Database(args) as db:
+        metadata = db.metadata()
+        existing = db.existing_indexes()
+
+        save_json(output / "database_metadata.json", {
+            "database": args.database,
+            "tables": metadata,
+            "indexes": existing,
+            "hypopg_available": db.extension_available("hypopg")
+        })
+
+        safe_unique = workload[
+            workload["safe"]
+        ].drop_duplicates("fingerprint")
+
+        for _, row in safe_unique.iterrows():
+            query = row["query_text"]
+
+            record = {
+                "fingerprint": row["fingerprint"]
+            }
+
+            try:
+                plan = db.explain(query, analyze=False)
+                features = sql_features(query, plan)
+
+                patient_rows = [
+                    finite(item.get("estimated_rows"))
+                    for item in metadata
+                    if item.get("table_name") == "patient"
+                    and item.get("column_name") == "patient_id"
+                ]
+
+                scale_rows = (
+                    max(patient_rows)
+                    if patient_rows else 0.0
+                )
+
+                v6_features = extract_v6_features(
+                    query,
+                    plan,
+                    scale_rows
+                )
+
+                prediction = models.predict(v6_features)
+
+                features.update(v6_features)
+
+                record.update(features)
+                record.update(prediction)
+
+            except Exception as exc:
+                record["error"] = str(exc)
+                record["model_status"] = "query_explain_failed"
+
+            predictions.append(record)
+
+        save_csv(
+            output / "ai_predictions.csv",
+            predictions
+        )
+
+        candidates = generate_candidates(
+            workload, metadata, existing
+        )
+
+        for candidate in candidates:
+            size_mb, penalty = estimate_candidate_resources(
+                candidate, metadata
+            )
+
+            candidate.estimated_size_mb = size_mb
+            candidate.write_penalty = penalty
+
+        whatif_rows = []
+
+        if args.mode in ("evaluate", "experiment"):
+            for candidate in candidates[:args.max_candidates]:
+                queries = relevant_queries(
+                    candidate, workload
+                )
+
+                result = what_if(
+                    db, candidate, queries, audit
+                )
+
+                whatif_rows.append(result)
+
+                if result["available"]:
+                    candidate.estimated_gain_pct = finite(
+                        result["gain_pct"]
+                    )
+                    candidate.estimated_cost_before = finite(
+                        result["before_cost"]
+                    )
+                    candidate.estimated_cost_after = finite(
+                        result["after_cost"]
+                    )
+
+        save_csv(
+            output / "whatif_results.csv",
+            whatif_rows
+        )
+
+        model_available = False  # V6 feature parity not yet verified
+
+        ranked = rank_candidates(
+            candidates, metadata, drift,
+            model_available, args
+        )
+
+        save_csv(
+            output / "ranked_candidates.csv",
+            [asdict(c) for c in ranked]
+        )
+
+        ablations = ablation_report(
+            ranked, metadata, drift,
+            model_available, args
+        )
+
+        save_csv(
+            output / "ablation_recommendations.csv",
+            ablations
+        )
+
+        baselines = baseline_report(
+            ranked, predictions
+        )
+
+        save_json(
+            output / "baseline_protocol.json",
+            baselines
+        )
+
+        if args.mode == "experiment":
+            approved = [
+                c for c in ranked if c.approved
+            ][:args.max_experiments]
+
+            for candidate in approved:
+                queries = relevant_queries(
+                    candidate, workload
+                )[:args.benchmark_queries]
+
+                result = experiment_candidate(
+                    db, candidate, queries,
+                    args, audit
+                )
+
+                experiments.append(result)
+
+                save_json(
+                    output / "experiments" /
+                    f"{candidate.candidate_id}.json",
+                    result
+                )
+
+    feedback = feedback_report(experiments)
+
+    save_csv(
+        output / "feedback.csv",
+        feedback
+    )
+
+    scale_results = []
+
+    if args.scales:
+        for name in args.scales:
+            if name.lower() in PROTECTED_DATABASES:
+                audit.write(
+                    "protected_scale_readonly",
+                    database=name
+                )
+
+            scale_results.append(
+                evaluate_scale(
+                    args, name, workload,
+                    output, audit
+                )
+            )
+
+    save_json(
+        output / "scale_results.json",
+        scale_results
+    )
+
+    report = {
+        "project": "Adaptive Healthcare Knowledge Database",
+        "phase": "Phase 9",
+        "run_id": run_id,
+        "timestamp": utcnow(),
+        "mode": args.mode,
+        "database": args.database,
+        "model_status": models.status,
+        "workload_rows": len(workload),
+        "safe_queries": int(workload["safe"].sum()),
+        "rejected_queries": int((~workload["safe"]).sum()),
+        "unique_fingerprints": int(
+            workload["fingerprint"].nunique()
+        ),
+        "drift": drift,
+        "candidate_count": len(candidates),
+        "approved_candidates": sum(
+            c.approved for c in ranked
+        ),
+        "whatif_attempts": len(whatif_rows),
+        "whatif_successful": sum(
+            x.get("available", False)
+            for x in whatif_rows
+        ),
+        "experiments_attempted": len(experiments),
+        "experiments_completed": sum(
+            e.get("status") == "completed"
+            for e in experiments
+        ),
+        "feedback_records": len(feedback),
+        "scale_evaluations": len(scale_results),
+        "limitations": [
+            "Candidate extraction uses conservative SQL heuristics.",
+            "Model predictions require exact feature and target compatibility.",
+            "What-if planner costs are not measured latency improvements.",
+            "Recommendation ablations are not full performance ablations.",
+            "Baselines require matched controlled benchmark executions.",
+            "Read-only workload evaluation does not measure write overhead.",
+            "A single before-after index test is not a randomized crossover experiment.",
+            "No model retraining occurs automatically.",
+            "Index changes are restricted to explicitly authorized benchmark databases."
+        ]
+    }
+
+    save_json(output / "final_report.json", report)
+
+    print("\n" + "=" * 78)
+    print("PHASE 9 RESEARCH OPTIMIZER")
+    print("=" * 78)
+    print("Output:", output)
+    print("Mode:", args.mode)
+    print("Model:", models.status)
+    print("Safe queries:", report["safe_queries"])
+    print("Unique fingerprints:", report["unique_fingerprints"])
+    print("Index candidates:", report["candidate_count"])
+    print("Approved candidates:", report["approved_candidates"])
+    print("What-if successful:", report["whatif_successful"])
+    print("Experiments completed:", report["experiments_completed"])
+    print("=" * 78)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Phase 9 Research Database Optimizer"
+    )
+
+    parser.add_argument(
+        "--mode",
+        choices=["audit", "evaluate", "experiment"],
+        default="audit"
+    )
+
+    parser.add_argument(
+        "--host", default="127.0.0.1"
+    )
+    parser.add_argument(
+        "--port", type=int, default=5432
+    )
+    parser.add_argument(
+        "--user", default="postgres"
+    )
+    parser.add_argument(
+        "--password", default=os.getenv("PGPASSWORD")
+    )
+    parser.add_argument(
+        "--database",
+        default="adaptive_healthcare_db"
+    )
+
+    parser.add_argument(
+        "--workload", required=True
+    )
+    parser.add_argument(
+        "--reference-workload"
+    )
+    parser.add_argument(
+        "--model-dir"
+    )
+
+    parser.add_argument(
+        "--output",
+        default="results/phase9_research_optimizer"
+    )
+
+    parser.add_argument(
+        "--max-queries", type=int, default=950
+    )
+    parser.add_argument(
+        "--max-candidates", type=int, default=25
+    )
+    parser.add_argument(
+        "--max-experiments", type=int, default=5
+    )
+    parser.add_argument(
+        "--benchmark-queries", type=int, default=10
+    )
+    parser.add_argument(
+        "--scale-query-limit", type=int, default=20
+    )
+
+    parser.add_argument(
+        "--repeats", type=int, default=5
+    )
+    parser.add_argument(
+        "--bootstrap", type=int, default=1000
+    )
+    parser.add_argument(
+        "--seed", type=int, default=42
+    )
+    parser.add_argument(
+        "--timeout-ms", type=int, default=15000
+    )
+
+    parser.add_argument(
+        "--minimum-gain-pct",
+        type=float, default=5.0
+    )
+    parser.add_argument(
+        "--maximum-index-mb",
+        type=float, default=512.0
+    )
+    parser.add_argument(
+        "--maximum-risk",
+        type=float, default=0.5
+    )
+
+    parser.add_argument(
+        "--allow-index-changes",
+        action="store_true"
+    )
+    parser.add_argument(
+        "--confirm-database"
+    )
+    parser.add_argument(
+        "--scales", nargs="*"
+    )
+
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    args = parse_args()
+
+    if args.repeats < 1:
+        raise ValueError("--repeats must be positive")
+
+    if args.bootstrap < 100:
+        raise ValueError("--bootstrap must be at least 100")
+
+    run(args)
