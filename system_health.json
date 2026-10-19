@@ -1,0 +1,375 @@
+{
+  "project": "Adaptive Healthcare Knowledge Database",
+  "started_at": "2026-10-18T15:04:05.810416+00:00",
+  "finished_at": "2026-10-18T15:04:07.733715+00:00",
+  "duration_seconds": 1.923,
+  "configuration": {
+    "postgresql": {
+      "host": "127.0.0.1",
+      "port": 5433,
+      "database": "adaptive_healthcare_phase9_benchmark"
+    },
+    "neo4j": {
+      "uri": "bolt://127.0.0.1:7687",
+      "database": "neo4j"
+    },
+    "phase9_dir": "C:\\Users\\Dipshikha Chakrabort\\Music\\DBMS pjt\\results\\phase8_phase9_v7_audit\\20261018_130202_315654",
+    "phase12_dir": "C:\\Users\\Dipshikha Chakrabort\\Music\\DBMS pjt\\results\\phase12_store_v3",
+    "api_url": "http://127.0.0.1:8000"
+  },
+  "summary": {
+    "overall_status": "PASS",
+    "total_checks": 18,
+    "counts": {
+      "PASS": 18,
+      "FAIL": 0,
+      "WARN": 0,
+      "SKIP": 0
+    }
+  },
+  "checks": [
+    {
+      "name": "postgresql",
+      "status": "PASS",
+      "message": "Connected to adaptive_healthcare_phase9_benchmark; 39 public tables",
+      "duration_ms": 149.29,
+      "details": {
+        "database": "adaptive_healthcare_phase9_benchmark",
+        "user": "postgres",
+        "postgres_version": "PostgreSQL 17.11 (Debian 17.11-1.pgdg12+2) on x86_64-pc-linux-gnu",
+        "public_table_count": 39
+      }
+    },
+    {
+      "name": "neo4j",
+      "status": "PASS",
+      "message": "551,615 nodes, 804,488 relationships",
+      "duration_ms": 463.19,
+      "details": {
+        "uri": "bolt://127.0.0.1:7687",
+        "database": "neo4j",
+        "nodes": 551615,
+        "relationships": 804488
+      }
+    },
+    {
+      "name": "phase9_optimizer_results",
+      "status": "PASS",
+      "message": "67 readable Phase 9 CSV files",
+      "duration_ms": 38.11,
+      "details": {
+        "directory": "C:\\Users\\Dipshikha Chakrabort\\Music\\DBMS pjt\\results\\phase8_phase9_v7_audit\\20261018_130202_315654",
+        "csv_count": 67,
+        "json_count": 1,
+        "readable_csvs": [
+          "budget_sweep.csv",
+          "budget_sweep_summary.csv",
+          "budget_sweep_unseen_template_43.csv",
+          "budget_sweep_unseen_template_44.csv",
+          "budget_sweep_unseen_template_45.csv",
+          "budget_sweep_unseen_template_46.csv",
+          "budget_sweep_unseen_template_47.csv",
+          "budget_sweep_within_template_43.csv",
+          "budget_sweep_within_template_44.csv",
+          "budget_sweep_within_template_45.csv",
+          "budget_sweep_within_template_46.csv",
+          "budget_sweep_within_template_47.csv",
+          "candidate_catalog_unseen_template_43_v6_plus_fk_join.csv",
+          "candidate_catalog_unseen_template_44_v6_plus_fk_join.csv",
+          "candidate_catalog_unseen_template_45_v6_plus_fk_join.csv",
+          "candidate_catalog_unseen_template_46_v6_plus_fk_join.csv",
+          "candidate_catalog_unseen_template_47_v6_plus_fk_join.csv",
+          "candidate_catalog_within_template_43_v6_plus_fk_join.csv",
+          "candidate_catalog_within_template_44_v6_plus_fk_join.csv",
+          "candidate_catalog_within_template_45_v6_plus_fk_join.csv",
+          "candidate_catalog_within_template_46_v6_plus_fk_join.csv",
+          "candidate_catalog_within_template_47_v6_plus_fk_join.csv",
+          "coverage_audit.csv",
+          "coverage_audit_unseen_template_43.csv",
+          "coverage_audit_unseen_template_44.csv",
+          "coverage_audit_unseen_template_45.csv",
+          "coverage_audit_unseen_template_46.csv",
+          "coverage_audit_unseen_template_47.csv",
+          "coverage_audit_within_template_43.csv",
+          "coverage_audit_within_template_44.csv",
+          "coverage_audit_within_template_45.csv",
+          "coverage_audit_within_template_46.csv",
+          "coverage_audit_within_template_47.csv",
+          "method_summary.csv",
+          "pair_synergy.csv",
+          "pair_synergy_unseen_template_43.csv",
+          "pair_synergy_unseen_template_44.csv",
+          "pair_synergy_unseen_template_45.csv",
+          "pair_synergy_unseen_template_46.csv",
+          "pair_synergy_unseen_template_47.csv",
+          "pair_synergy_within_template_43.csv",
+          "pair_synergy_within_template_44.csv",
+          "pair_synergy_within_template_45.csv",
+          "pair_synergy_within_template_46.csv",
+          "pair_synergy_within_template_47.csv",
+          "portfolio_comparison.csv",
+          "portfolio_comparison_unseen_template_43.csv",
+          "portfolio_comparison_unseen_template_44.csv",
+          "portfolio_comparison_unseen_template_45.csv",
+          "portfolio_comparison_unseen_template_46.csv",
+          "portfolio_comparison_unseen_template_47.csv",
+          "portfolio_comparison_within_template_43.csv",
+          "portfolio_comparison_within_template_44.csv",
+          "portfolio_comparison_within_template_45.csv",
+          "portfolio_comparison_within_template_46.csv",
+          "portfolio_comparison_within_template_47.csv",
+          "split_manifest.csv",
+          "split_manifest_unseen_template_43.csv",
+          "split_manifest_unseen_template_44.csv",
+          "split_manifest_unseen_template_45.csv",
+          "split_manifest_unseen_template_46.csv",
+          "split_manifest_unseen_template_47.csv",
+          "split_manifest_within_template_43.csv",
+          "split_manifest_within_template_44.csv",
+          "split_manifest_within_template_45.csv",
+          "split_manifest_within_template_46.csv",
+          "split_manifest_within_template_47.csv"
+        ],
+        "invalid_csvs": []
+      }
+    },
+    {
+      "name": "phase12_retrieval_index",
+      "status": "PASS",
+      "message": "Phase 12 index ready: 19 documents, 696 chunks, 696 FTS entries; retrieval artifact present",
+      "duration_ms": 25.85,
+      "details": {
+        "directory": "C:\\Users\\Dipshikha Chakrabort\\Music\\DBMS pjt\\results\\phase12_store_v3",
+        "sqlite_exists": true,
+        "joblib_exists": true,
+        "sqlite_integrity": "ok",
+        "document_count": 19,
+        "chunk_count": 696,
+        "fts_count": 696,
+        "sqlite_size_bytes": 3530752,
+        "joblib_size_bytes": 1537930
+      }
+    },
+    {
+      "name": "fastapi_dashboard",
+      "status": "PASS",
+      "message": "Dashboard root is reachable",
+      "duration_ms": 26.14,
+      "details": {
+        "http_status": 200
+      }
+    },
+    {
+      "name": "fastapi_openapi",
+      "status": "PASS",
+      "message": "OpenAPI available with 13 paths",
+      "duration_ms": 15.56,
+      "details": {
+        "path_count": 13
+      }
+    },
+    {
+      "name": "api_optimizer_summary",
+      "status": "PASS",
+      "message": "HTTP 200 and valid JSON",
+      "duration_ms": 5.86,
+      "details": {
+        "url": "http://127.0.0.1:8000/api/optimizer/summary",
+        "http_status": 200,
+        "content_type": "application/json",
+        "response_keys": [
+          "run_directory",
+          "code_version",
+          "method_summary"
+        ]
+      }
+    },
+    {
+      "name": "api_optimizer_budget_sweep",
+      "status": "PASS",
+      "message": "HTTP 200 and valid JSON",
+      "duration_ms": 5.11,
+      "details": {
+        "url": "http://127.0.0.1:8000/api/optimizer/budget-sweep",
+        "http_status": 200,
+        "content_type": "application/json",
+        "response_keys": [
+          "budget_sweep"
+        ]
+      }
+    },
+    {
+      "name": "api_optimizer_reset_counters",
+      "status": "PASS",
+      "message": "HTTP 200 and valid JSON",
+      "duration_ms": 5.12,
+      "details": {
+        "url": "http://127.0.0.1:8000/api/optimizer/reset-counters",
+        "http_status": 200,
+        "content_type": "application/json",
+        "response_keys": [
+          "counters_present",
+          "min_by_column",
+          "max_by_column",
+          "all_positive"
+        ]
+      }
+    },
+    {
+      "name": "api_graph_stats",
+      "status": "PASS",
+      "message": "HTTP 200 and valid JSON",
+      "duration_ms": 225.21,
+      "details": {
+        "url": "http://127.0.0.1:8000/api/graph/stats",
+        "http_status": 200,
+        "content_type": "application/json",
+        "response_keys": [
+          "nodes",
+          "relationships",
+          "total_nodes",
+          "total_relationships"
+        ]
+      }
+    },
+    {
+      "name": "api_graph_patients",
+      "status": "PASS",
+      "message": "HTTP 200 and valid JSON",
+      "duration_ms": 24.86,
+      "details": {
+        "url": "http://127.0.0.1:8000/api/graph/patients",
+        "http_status": 200,
+        "content_type": "application/json",
+        "response_keys": [
+          "patients"
+        ]
+      }
+    },
+    {
+      "name": "api_monitoring_summary",
+      "status": "PASS",
+      "message": "HTTP 200 and valid JSON",
+      "duration_ms": 23.81,
+      "details": {
+        "url": "http://127.0.0.1:8000/api/monitoring/summary",
+        "http_status": 200,
+        "content_type": "application/json",
+        "response_keys": [
+          "total_executions",
+          "successful",
+          "mean_execution_ms",
+          "seq_scans",
+          "index_scans",
+          "shared_read_blocks"
+        ]
+      }
+    },
+    {
+      "name": "api_monitoring_recent",
+      "status": "PASS",
+      "message": "HTTP 200 and valid JSON",
+      "duration_ms": 36.71,
+      "details": {
+        "url": "http://127.0.0.1:8000/api/monitoring/recent",
+        "http_status": 200,
+        "content_type": "application/json",
+        "response_keys": [
+          "rows"
+        ]
+      }
+    },
+    {
+      "name": "api_monitoring_top_fingerprints",
+      "status": "PASS",
+      "message": "HTTP 200 and valid JSON",
+      "duration_ms": 39.46,
+      "details": {
+        "url": "http://127.0.0.1:8000/api/monitoring/top-fingerprints",
+        "http_status": 200,
+        "content_type": "application/json",
+        "response_keys": [
+          "fingerprints"
+        ]
+      }
+    },
+    {
+      "name": "api_retrieval_doctor",
+      "status": "PASS",
+      "message": "HTTP 200 and valid JSON",
+      "duration_ms": 260.39,
+      "details": {
+        "url": "http://127.0.0.1:8000/api/retrieval/doctor",
+        "http_status": 200,
+        "content_type": "application/json",
+        "response_keys": [
+          "phase",
+          "documents",
+          "chunks",
+          "fts_chunks",
+          "fts_consistent",
+          "categories",
+          "postgresql_configured",
+          "neo4j_password_in_environment",
+          "production_database_writes",
+          "index_exists",
+          "index_current"
+        ]
+      }
+    },
+    {
+      "name": "api_system_capabilities",
+      "status": "PASS",
+      "message": "HTTP 200 and valid JSON",
+      "duration_ms": 9.44,
+      "details": {
+        "url": "http://127.0.0.1:8000/api/system/capabilities",
+        "http_status": 200,
+        "content_type": "application/json",
+        "response_keys": [
+          "phases",
+          "honest_notes"
+        ]
+      }
+    },
+    {
+      "name": "api_graph_patient_detail",
+      "status": "PASS",
+      "message": "HTTP 200 and valid JSON",
+      "duration_ms": 42.64,
+      "details": {
+        "url": "http://127.0.0.1:8000/api/graph/patient/50ecfb9d-e478-4b72-9d67-9f29cde39456",
+        "http_status": 200,
+        "content_type": "application/json",
+        "response_keys": [
+          "patient_id",
+          "groups"
+        ]
+      }
+    },
+    {
+      "name": "api_retrieval_ask",
+      "status": "PASS",
+      "message": "Retrieval endpoint responded successfully",
+      "duration_ms": 524.72,
+      "details": {
+        "url": "http://127.0.0.1:8000/api/retrieval/ask",
+        "http_status": 200,
+        "response_keys": [
+          "question",
+          "question_intent",
+          "status",
+          "answer",
+          "citations",
+          "graph_citations",
+          "retrieval_diagnostics",
+          "postgresql",
+          "neo4j",
+          "latency_ms",
+          "note",
+          "disclaimer"
+        ]
+      }
+    }
+  ]
+}

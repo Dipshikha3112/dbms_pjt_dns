@@ -1,0 +1,81 @@
+{
+    "random_state": 42,
+    "workload_class_mapping": {
+        "doctor": 0,
+        "admin": 1,
+        "research": 2
+    },
+    "risk_mapping": {
+        "LOW": 0,
+        "MEDIUM": 1,
+        "HIGH": 2
+    },
+    "model_features": [
+        "estimated_cost",
+        "startup_cost",
+        "estimated_rows",
+        "join_count",
+        "filter_count",
+        "table_count",
+        "column_count",
+        "index_used",
+        "index_scan_count",
+        "seq_scan_count",
+        "bitmap_scan_count",
+        "plan_node_count",
+        "complexity_score",
+        "fingerprint_frequency",
+        "family_frequency",
+        "query_family",
+        "complexity"
+    ],
+    "numeric_features": [
+        "estimated_cost",
+        "startup_cost",
+        "estimated_rows",
+        "join_count",
+        "filter_count",
+        "table_count",
+        "column_count",
+        "index_used",
+        "index_scan_count",
+        "seq_scan_count",
+        "bitmap_scan_count",
+        "plan_node_count",
+        "complexity_score",
+        "fingerprint_frequency",
+        "family_frequency"
+    ],
+    "categorical_features": [
+        "query_family",
+        "complexity"
+    ],
+    "demand_features": [
+        "log_avg_execution",
+        "log_avg_cost",
+        "log_avg_rows",
+        "log_avg_io",
+        "avg_join_count",
+        "avg_filter_count",
+        "avg_table_count",
+        "avg_column_count",
+        "index_usage_rate",
+        "avg_index_scans",
+        "avg_seq_scans",
+        "avg_bitmap_scans",
+        "avg_plan_nodes",
+        "query_family",
+        "dominant_workload_type",
+        "dominant_complexity"
+    ],
+    "selected_cluster_count": 8,
+    "silhouette_score": 0.4149036693373743,
+    "risk_thresholds": {
+        "high_latency_ms": 1000.0,
+        "medium_latency_ms": 50.0,
+        "high_cost": 100000.0,
+        "medium_cost": 10000.0,
+        "high_io_reads": 50000,
+        "medium_io_reads": 1000
+    }
+}

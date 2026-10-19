@@ -1,0 +1,14 @@
+[
+  {
+    "question": "What are the major risk factors for cardiovascular disease?",
+    "expected_keywords": ["hypertension", "smoking", "diabetes", "cholesterol"]
+  },
+  {
+    "question": "How does hypertension contribute to cardiovascular disease risk?",
+    "expected_keywords": ["blood pressure", "heart", "stroke"]
+  },
+  {
+    "question": "How does LDL cholesterol contribute to atherosclerosis?",
+    "expected_keywords": ["LDL", "plaque", "arteries"]
+  }
+]

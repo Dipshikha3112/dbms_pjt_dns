@@ -1,0 +1,538 @@
+[
+  {
+    "strategy": "sql",
+    "intent": "sql",
+    "latency_ms": 323.905,
+    "success": true,
+    "cold": true,
+    "timestamp": "2026-10-19T05:10:29.712103+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 822.089,
+    "success": true,
+    "cold": true,
+    "timestamp": "2026-10-19T05:10:41.135185+00:00"
+  },
+  {
+    "strategy": "vector",
+    "intent": "vector",
+    "latency_ms": 16534.552,
+    "success": true,
+    "cold": true,
+    "timestamp": "2026-10-19T05:11:10.300604+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "graph+vector",
+    "latency_ms": 19395.713,
+    "success": true,
+    "cold": true,
+    "timestamp": "2026-10-19T05:11:49.447219+00:00"
+  },
+  {
+    "strategy": "sql",
+    "intent": "sql",
+    "latency_ms": 159.455,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:11:54.578596+00:00"
+  },
+  {
+    "strategy": "sql",
+    "intent": "sql",
+    "latency_ms": 29.293,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:11:54.608679+00:00"
+  },
+  {
+    "strategy": "sql",
+    "intent": "sql",
+    "latency_ms": 29.019,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:11:54.638289+00:00"
+  },
+  {
+    "strategy": "sql",
+    "intent": "sql",
+    "latency_ms": 0.756,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:11:54.639649+00:00"
+  },
+  {
+    "strategy": "sql",
+    "intent": "sql",
+    "latency_ms": 0.668,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:11:54.640976+00:00"
+  },
+  {
+    "strategy": "sql",
+    "intent": "sql",
+    "latency_ms": 0.531,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:11:54.641960+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 418.468,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:11:55.060983+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 5.964,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:11:55.067785+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 7.173,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:11:55.075774+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 15.48,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:11:55.091891+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 28.306,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:11:55.120939+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 30.994,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:11:55.152716+00:00"
+  },
+  {
+    "strategy": "vector",
+    "intent": "vector",
+    "latency_ms": 16913.989,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:12:12.067440+00:00"
+  },
+  {
+    "strategy": "vector",
+    "intent": "vector",
+    "latency_ms": 5527.366,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:12:17.596464+00:00"
+  },
+  {
+    "strategy": "vector",
+    "intent": "vector",
+    "latency_ms": 5505.214,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:12:23.102365+00:00"
+  },
+  {
+    "strategy": "vector",
+    "intent": "vector",
+    "latency_ms": 7738.775,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:12:30.841854+00:00"
+  },
+  {
+    "strategy": "vector",
+    "intent": "vector",
+    "latency_ms": 6621.074,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:12:37.463529+00:00"
+  },
+  {
+    "strategy": "vector",
+    "intent": "vector",
+    "latency_ms": 5151.091,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:12:42.615330+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "graph+vector",
+    "latency_ms": 6071.68,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:12:48.687777+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "graph+vector",
+    "latency_ms": 6182.067,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:12:54.870461+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "graph+vector",
+    "latency_ms": 6560.335,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:13:01.431448+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "graph+vector",
+    "latency_ms": 6341.633,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:13:07.774128+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "graph+vector",
+    "latency_ms": 6248.797,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:13:14.023575+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "graph+vector",
+    "latency_ms": 5710.807,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:13:19.735007+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "sql+vector",
+    "latency_ms": 5120.611,
+    "success": true,
+    "cold": true,
+    "timestamp": "2026-10-19T05:13:24.856649+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "sql+vector",
+    "latency_ms": 5225.449,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:13:30.082787+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "sql+vector",
+    "latency_ms": 6895.529,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:13:36.978964+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 560.446,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:17:42.355559+00:00"
+  },
+  {
+    "strategy": "sql",
+    "intent": "sql",
+    "latency_ms": 157.127,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:17:55.082325+00:00"
+  },
+  {
+    "strategy": "sql",
+    "intent": "sql",
+    "latency_ms": 28.182,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:17:55.111349+00:00"
+  },
+  {
+    "strategy": "sql",
+    "intent": "sql",
+    "latency_ms": 29.488,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:17:55.141526+00:00"
+  },
+  {
+    "strategy": "sql",
+    "intent": "sql",
+    "latency_ms": 0.753,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:17:55.142914+00:00"
+  },
+  {
+    "strategy": "sql",
+    "intent": "sql",
+    "latency_ms": 0.502,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:17:55.144054+00:00"
+  },
+  {
+    "strategy": "sql",
+    "intent": "sql",
+    "latency_ms": 0.505,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:17:55.145079+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 491.771,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:17:55.637453+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 19.917,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:17:55.658326+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 6.597,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:17:55.665989+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 18.936,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:17:55.685757+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 18.48,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:17:55.705637+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 20.579,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:17:55.726931+00:00"
+  },
+  {
+    "strategy": "vector",
+    "intent": "vector",
+    "latency_ms": 18919.571,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:18:14.647307+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "vector",
+    "latency_ms": 51.158,
+    "success": true,
+    "cold": true,
+    "timestamp": "2026-10-19T05:18:14.700600+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "vector",
+    "latency_ms": 52.092,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:18:14.753695+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "vector",
+    "latency_ms": 71.136,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:18:14.826036+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "vector",
+    "latency_ms": 51.246,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:18:14.878335+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "vector",
+    "latency_ms": 54.207,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:18:14.933515+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "graph+vector",
+    "latency_ms": 78.536,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:18:15.013083+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "graph+vector",
+    "latency_ms": 57.259,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:18:15.071464+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "graph+vector",
+    "latency_ms": 160.807,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:18:15.233283+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "graph+vector",
+    "latency_ms": 77.319,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:18:15.311616+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "graph+vector",
+    "latency_ms": 61.103,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:18:15.373780+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "graph+vector",
+    "latency_ms": 63.486,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:18:15.438305+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "sql+vector",
+    "latency_ms": 102.514,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:18:15.542289+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "sql+vector",
+    "latency_ms": 90.374,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:18:15.633738+00:00"
+  },
+  {
+    "strategy": "hybrid",
+    "intent": "sql+vector",
+    "latency_ms": 86.405,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:18:15.721120+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 687.558,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:20:06.696665+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 705.411,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:25:36.330433+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 620.358,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:26:37.207701+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 1261.603,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:31:52.312919+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 1344.48,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:32:34.091734+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 1246.382,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:34:22.319484+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 0.131,
+    "success": false,
+    "cold": false,
+    "timestamp": "2026-10-19T05:53:05.625290+00:00"
+  },
+  {
+    "strategy": "graph",
+    "intent": "graph",
+    "latency_ms": 19.094,
+    "success": true,
+    "cold": false,
+    "timestamp": "2026-10-19T05:58:40.539601+00:00"
+  }
+]

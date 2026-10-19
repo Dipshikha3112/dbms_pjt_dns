@@ -1,0 +1,683 @@
+[
+  {
+    "question_id": "Q001",
+    "category": "risk_factors",
+    "question": "What are the major modifiable cardiovascular risk factors?",
+    "expected_concepts": [],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "development"
+  },
+  {
+    "question_id": "Q002",
+    "category": "risk_factors",
+    "question": "How does smoking affect cardiovascular disease risk?",
+    "expected_concepts": [
+      "cardiovascular disease",
+      "smoking"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "development"
+  },
+  {
+    "question_id": "Q003",
+    "category": "risk_factors",
+    "question": "What cardiovascular risks are associated with diabetes mellitus?",
+    "expected_concepts": [
+      "diabetes"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q004",
+    "category": "risk_factors",
+    "question": "How does obesity influence cardiovascular risk?",
+    "expected_concepts": [
+      "obesity"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q005",
+    "category": "risk_factors",
+    "question": "How is physical inactivity associated with heart disease?",
+    "expected_concepts": [
+      "cardiovascular disease"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q006",
+    "category": "risk_factors",
+    "question": "How does dietary sodium relate to blood pressure?",
+    "expected_concepts": [],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q007",
+    "category": "risk_factors",
+    "question": "What is the relationship between family history and coronary disease?",
+    "expected_concepts": [],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q008",
+    "category": "risk_factors",
+    "question": "How does older age affect cardiovascular risk?",
+    "expected_concepts": [],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q009",
+    "category": "risk_factors",
+    "question": "How does dyslipidemia affect cardiovascular outcomes?",
+    "expected_concepts": [
+      "ldl cholesterol"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q010",
+    "category": "risk_factors",
+    "question": "What is the role of hypertension in stroke risk?",
+    "expected_concepts": [
+      "hypertension",
+      "stroke"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "development"
+  },
+  {
+    "question_id": "Q011",
+    "category": "mechanisms",
+    "question": "How does hypertension contribute to cardiovascular disease risk?",
+    "expected_concepts": [
+      "hypertension",
+      "cardiovascular disease"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "development"
+  },
+  {
+    "question_id": "Q012",
+    "category": "mechanisms",
+    "question": "How does hypertension contribute to left ventricular hypertrophy?",
+    "expected_concepts": [
+      "hypertension",
+      "left ventricular hypertrophy"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "development"
+  },
+  {
+    "question_id": "Q013",
+    "category": "mechanisms",
+    "question": "What mechanisms link elevated blood pressure to arterial stiffness?",
+    "expected_concepts": [
+      "hypertension",
+      "arterial stiffness"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q014",
+    "category": "mechanisms",
+    "question": "How does LDL cholesterol contribute to atherosclerosis?",
+    "expected_concepts": [
+      "atherosclerosis",
+      "ldl cholesterol"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q015",
+    "category": "mechanisms",
+    "question": "How are foam cells involved in plaque formation?",
+    "expected_concepts": [
+      "plaque"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q016",
+    "category": "mechanisms",
+    "question": "How does endothelial dysfunction relate to atherosclerosis?",
+    "expected_concepts": [
+      "atherosclerosis",
+      "endothelial dysfunction"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q017",
+    "category": "mechanisms",
+    "question": "What role does vascular inflammation play in atherosclerosis?",
+    "expected_concepts": [
+      "atherosclerosis",
+      "inflammation"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q018",
+    "category": "mechanisms",
+    "question": "How does plaque rupture contribute to myocardial infarction?",
+    "expected_concepts": [
+      "plaque"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q019",
+    "category": "mechanisms",
+    "question": "How does diabetes affect vascular endothelial function?",
+    "expected_concepts": [
+      "diabetes"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q020",
+    "category": "mechanisms",
+    "question": "How does chronic kidney disease influence cardiovascular risk?",
+    "expected_concepts": [
+      "kidney disease"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "development"
+  },
+  {
+    "question_id": "Q021",
+    "category": "diagnostics",
+    "question": "How is HbA1c used to assess long-term glycemic control?",
+    "expected_concepts": [
+      "hba1c"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "development"
+  },
+  {
+    "question_id": "Q022",
+    "category": "diagnostics",
+    "question": "What is the role of lipid panels in cardiovascular risk assessment?",
+    "expected_concepts": [],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "development"
+  },
+  {
+    "question_id": "Q023",
+    "category": "diagnostics",
+    "question": "How is hypertension diagnosed using blood pressure measurements?",
+    "expected_concepts": [
+      "hypertension"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q024",
+    "category": "diagnostics",
+    "question": "What is the clinical purpose of measuring LDL cholesterol?",
+    "expected_concepts": [
+      "ldl cholesterol"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q025",
+    "category": "diagnostics",
+    "question": "What does an elevated troponin level indicate?",
+    "expected_concepts": [],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q026",
+    "category": "diagnostics",
+    "question": "How are kidney function tests used in cardiovascular risk assessment?",
+    "expected_concepts": [],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q027",
+    "category": "diagnostics",
+    "question": "What is the role of electrocardiography in cardiac evaluation?",
+    "expected_concepts": [],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q028",
+    "category": "diagnostics",
+    "question": "What does echocardiography assess in heart failure?",
+    "expected_concepts": [
+      "heart failure"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q029",
+    "category": "diagnostics",
+    "question": "How is albuminuria used to evaluate kidney disease?",
+    "expected_concepts": [],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q030",
+    "category": "diagnostics",
+    "question": "How is arterial stiffness assessed in cardiovascular research?",
+    "expected_concepts": [
+      "arterial stiffness"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "development"
+  },
+  {
+    "question_id": "Q031",
+    "category": "medications",
+    "question": "How do statins reduce LDL cholesterol?",
+    "expected_concepts": [
+      "ldl cholesterol",
+      "statins"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "development"
+  },
+  {
+    "question_id": "Q032",
+    "category": "medications",
+    "question": "What evidence supports statins for cardiovascular prevention?",
+    "expected_concepts": [
+      "statins"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "development"
+  },
+  {
+    "question_id": "Q033",
+    "category": "medications",
+    "question": "How do ACE inhibitors lower blood pressure?",
+    "expected_concepts": [],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q034",
+    "category": "medications",
+    "question": "What is the mechanism of action of beta blockers?",
+    "expected_concepts": [],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q035",
+    "category": "medications",
+    "question": "How do calcium channel blockers affect blood pressure?",
+    "expected_concepts": [],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q036",
+    "category": "medications",
+    "question": "What is the cardiovascular role of antiplatelet therapy?",
+    "expected_concepts": [],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q037",
+    "category": "medications",
+    "question": "How do SGLT2 inhibitors affect heart failure outcomes?",
+    "expected_concepts": [
+      "heart failure"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q038",
+    "category": "medications",
+    "question": "How do GLP-1 receptor agonists affect cardiovascular outcomes?",
+    "expected_concepts": [],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q039",
+    "category": "comorbidities",
+    "question": "How are hypertension and chronic kidney disease related?",
+    "expected_concepts": [
+      "hypertension",
+      "kidney disease"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q040",
+    "category": "comorbidities",
+    "question": "What is the association between diabetes and coronary artery disease?",
+    "expected_concepts": [
+      "diabetes"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "development"
+  },
+  {
+    "question_id": "Q041",
+    "category": "comorbidities",
+    "question": "How does obesity contribute to hypertension?",
+    "expected_concepts": [
+      "hypertension",
+      "obesity"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "development"
+  },
+  {
+    "question_id": "Q042",
+    "category": "comorbidities",
+    "question": "How is heart failure associated with kidney dysfunction?",
+    "expected_concepts": [
+      "heart failure"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "development"
+  },
+  {
+    "question_id": "Q043",
+    "category": "comorbidities",
+    "question": "How do diabetes and dyslipidemia interact in cardiovascular risk?",
+    "expected_concepts": [
+      "ldl cholesterol",
+      "diabetes"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q044",
+    "category": "comorbidities",
+    "question": "What is the relationship between atrial fibrillation and stroke?",
+    "expected_concepts": [
+      "stroke"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q045",
+    "category": "comorbidities",
+    "question": "How does sleep apnea relate to hypertension?",
+    "expected_concepts": [
+      "hypertension"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q046",
+    "category": "evidence_limits",
+    "question": "Does an association between hypertension and a biomarker establish causality?",
+    "expected_concepts": [
+      "hypertension"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q047",
+    "category": "evidence_limits",
+    "question": "Can an observational cohort study prove a medication prevents stroke?",
+    "expected_concepts": [
+      "stroke"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q048",
+    "category": "evidence_limits",
+    "question": "What limitations arise when cardiovascular risk estimates are applied to new populations?",
+    "expected_concepts": [],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q049",
+    "category": "evidence_limits",
+    "question": "How can confounding affect an observed association between obesity and heart disease?",
+    "expected_concepts": [
+      "cardiovascular disease",
+      "obesity"
+    ],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "held_out"
+  },
+  {
+    "question_id": "Q050",
+    "category": "evidence_limits",
+    "question": "Why might two studies report different effects of a cardiovascular treatment?",
+    "expected_concepts": [],
+    "expected_keywords": [],
+    "reference_answer": null,
+    "relevant_chunk_ids": [],
+    "relevant_graph_paths": [],
+    "review_status": "pending",
+    "split": "development"
+  }
+]
